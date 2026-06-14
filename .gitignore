@@ -1,0 +1,20 @@
+# Build
+target/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.class
+
+# BD (archivo de partida del desarrollador, no va al repo)
+*.db
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Carpetas de agentes / contexto local
+.opencode/
+AGENTS/
+.github/
