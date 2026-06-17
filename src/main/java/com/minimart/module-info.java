@@ -8,4 +8,9 @@ module com.minimart {
     exports com.minimart;
     exports com.minimart.dao;
     exports com.minimart.model;
+
+    exports com.minimart.controller;
+    exports com.minimart.view;
+    opens   com.minimart.controller to javafx.fxml;
+    opens   com.minimart.view       to javafx.fxml;
 }
