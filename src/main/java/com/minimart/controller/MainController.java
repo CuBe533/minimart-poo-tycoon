@@ -1,11 +1,14 @@
 package com.minimart.controller;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
+import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
+
+import com.minimart.dao.TiendaDAO;
+import com.minimart.model.Cajero;
+import com.minimart.model.Estanteria;
+import com.minimart.model.Tienda;
 
 public class MainController {
 
@@ -59,8 +62,81 @@ public class MainController {
     @FXML private Label        labelDia;
     @FXML private Button       btnAvanzarDia;
 
+    private Tienda tiendaActual;
+
     @FXML
     public void initialize() {
-        System.out.println("[MainController] initialize() — Sprint 2: UI cargada correctamente.");
+        System.out.println("[MainController] initialize() — Sprint 3: cargando partida desde DB...");
+        try {
+            cargarPartida();
+            System.out.println("[MainController] Partida cargada y bindings establecidos.");
+        }
+        catch (RuntimeException ex){
+            mostrarErrorDB(ex);
+        }
+    }
+
+    private void cargarPartida(){
+        TiendaDAO dao = new TiendaDAO();
+        tiendaActual = dao.cargarPartidaCompleta(1);
+
+        VBox[]        slotsEstanteria = { slotEstanteria1, slotEstanteria2, slotEstanteria3, slotEstanteria4, slotEstanteria5 };
+        Label[]       labelsTipo      = { labelTipo1,      labelTipo2,      labelTipo3,      labelTipo4,      labelTipo5      };
+        ProgressBar[] barrasStock     = { stockBar1,       stockBar2,       stockBar3,       stockBar4,       stockBar5       };
+        VBox[]        slotsCajero     = { slotCajero1,     slotCajero2,     slotCajero3     };
+
+        for (int i = 0; i < slotsEstanteria.length; i++){
+            slotsEstanteria[i].setOpacity(0.3);
+            barrasStock[i].setProgress(0.0);
+            labelsTipo[i].setText("—");
+        }
+
+        for (Estanteria e: tiendaActual.getEstanterias()){
+            int idx = e.getPosicionVisual() -1 ;
+            if (idx < 0 || idx >= slotsEstanteria.length){
+                System.out.println("[MainController] Estantería con posicionVisual invalida: "+e);
+                continue;
+            }
+            slotsEstanteria[idx].setOpacity(1.0);
+            labelsTipo[idx].setText(e.getTipoProducto());
+
+            barrasStock[idx].progressProperty().bind(
+              e.stockActualProperty().divide(e.getStockMaximo())
+            );
+        }
+
+        for (int i = 0; i < tiendaActual.getCajeros().size() && i < slotsCajero.length; i++){
+            Cajero c = tiendaActual.getCajeros().get(i);
+            slotsCajero[i].setOpacity(c.isActivo() ? 1.0 : 0.3);
+        }
+
+        labelDinero.textProperty().bind(
+                tiendaActual.dineroActualProperty().asString("$%.2f")
+        );
+        labelDia.textProperty().bind(
+                tiendaActual.diaActualProperty().asString("DÍA: %d")
+        );
+
+        labelReputacion.setText("100");
+    }
+
+    public Tienda getTiendaActual(){
+        return tiendaActual;
+    }
+
+    private void mostrarErrorDB(Throwable causa){
+        System.out.println("[MainController] ✗ Error cargando partida: " + causa.getMessage());
+        causa.printStackTrace();
+
+        Alert alerta = new Alert(
+                Alert.AlertType.ERROR,
+                "No se pudo cargar la partida desde la base de datos. \n\n"+
+                   "Causa: "+  causa.getMessage() + "\n\n"+
+                   "Verificar que ~/minimart.db existe y que initDB() se ejecutocorrectamente.\n"+
+                        ButtonType.CLOSE
+        );
+        alerta.setTitle("Minimart — Error de carga");
+        alerta.setHeaderText("Error al leer la base de datos");
+        alerta.showAndWait();
     }
 }

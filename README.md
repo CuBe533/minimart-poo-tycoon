@@ -1,7 +1,7 @@
 # Estado Actual del Proyecto — MiniMart POO Tycoon
 
-> **Sprint completado:** 2 de 7 — Capa de Presentación (FXML + Controller + CSS)
-> **Fecha:** 2026-06-16
+> **Sprint completado:** 3 de 7 — Binding de Datos (READ desde BD a la UI)
+> **Fecha:** 2026-06-26
 
 ---
 
@@ -175,9 +175,9 @@ public class App extends Application {
 
 ---
 
-## 5. `MainController.java` — Controlador Principal (Sprint 2)
+## 5. `MainController.java` — Controlador Principal (Sprints 2 + 3)
 
-66 líneas con inyección FXML para todos los elementos de la UI:
+142 líneas con inyección FXML + lógica de carga y bindings:
 
 **Estanterías (5 slots):**
 - `slotEstanteria1-5` (VBox), `imgEstanteria1-5` (ImageView)
@@ -196,7 +196,14 @@ public class App extends Application {
 **Estadísticas:**
 - `labelDinero`, `labelReputacion`, `labelDia`, `btnAvanzarDia`
 
-`initialize()` imprime confirmación en consola por ahora.
+**Lógica Sprint 3:**
+- `initialize()` llama `cargarPartida()` dentro de `try/catch` con manejo de error vía `Alert`
+- `cargarPartida()` instancia `TiendaDAO`, obtiene `tiendaActual = dao.cargarPartidaCompleta(1)`
+- Arreglos indexados (`slotsEstanteria[]`, `labelsTipo[]`, `barrasStock[]`, `slotsCajero[]`) para mapeo por `posicionVisual - 1`
+- Binding reactivo: `labelDinero` ↔ `dineroActualProperty()`, `labelDia` ↔ `diaActualProperty()`
+- Binding reactivo: `stockBar` ↔ `stockActualProperty().divide(stockMaximo)` por cada estantería
+- Opacidad de slots según datos reales (`isActivo()` en cajeros, existencia en estanterías)
+- `getTiendaActual()` expone el modelo para Sprint 4+
 
 ---
 
@@ -376,7 +383,7 @@ CRUD + `cargarPartidaCompleta(int tiendaId)` — punto de entrada del juego.
 
 | Paquete | Archivos | Estado |
 |---|---|---|
-| `controller/` | `MainController.java` | Sprint 2 completado |
+| `controller/` | `MainController.java` | Sprint 3 completado (carga BD + bindings reactivos) |
 | `view/` | `PanelesView.java`, `package-info.java` | Sprint 2 (esqueleto) |
 | `resources/` | `MainWindow.fxml`, `styles.css` | Sprint 2 completado |
 
@@ -411,17 +418,34 @@ CRUD + `cargarPartidaCompleta(int tiendaId)` — punto de entrada del juego.
 
 ---
 
-## 14. Preparación para Sprint 3
+## 14. Criterios de Aceptación — Sprint 3
 
-### Lo que Sprint 3 podrá hacer
+| CA | Descripción | Estado |
+|---|---|---|
+| CA-01 | `mvn clean compile` → BUILD SUCCESS | ✅ |
+| CA-02 | Ventana carga con datos reales desde BD (labelTipo1 muestra "Snacks") | ✅ |
+| CA-03 | Output en consola: "Partida cargada y bindings establecidos." sin errores | ✅ |
+| CA-04 | Bindings reactivos: `labelDinero` ↔ `dineroActualProperty()` | ✅ |
+| CA-05 | `labelTipo1` muestra `"Snacks"` desde la BD | ✅ |
+| CA-06 | `stockBar1-5` bindeados via `progressProperty().bind()` (sin setProgress directo) | ✅ |
+| CA-07 | `labelDinero` y `labelDia` bindeados sin `setText()` directo | ✅ |
+| CA-08 | Manejo de error de BD con `Alert(ERROR)` si falla `cargarPartidaCompleta()` | ✅ |
+| CA-09 | `getTiendaActual()` expone el estado del modelo para Sprint 4+ | ✅ |
+| CA-10 | Solo `MainController.java` modificado (sin cambios en FXML, CSS ni DAOs) | ✅ |
 
-- Binding de `tienda.dineroActualProperty()` con `labelDinero`
-- Binding de `estanteria.stockActualProperty()` con `stockBarN`
-- Poblar `labelTipoN` desde `estanteria.getTipoProducto()`
-- Mostrar/ocultar slots según cantidad de estanterías y cajeros
-- Manejar eventos de `btnAvanzarDia`
+---
 
-### Lo que NO incluye Sprint 2
+## 15. Preparación para Sprint 4
+
+### Lo que Sprint 4 podrá hacer
+
+- Acceder a `mainController.getTiendaActual()` para el modelo vivo
+- Mutar `tiendaActual.setDineroActual(nuevo)` → `labelDinero` se actualiza solo (binding ya activo)
+- Mutar `estanteria.setStockActual(nuevo)` → `stockBar` se actualiza sola
+- Iterar `tiendaActual.getCajeros()` para gestionar colas de clientes
+- Las barras de atención (`atenderBar1..3`) se actualizarán manualmente en cada tick
+
+### Lo que NO incluye Sprint 3
 
 | Funcionalidad | Sprint |
 |---|---|
@@ -433,14 +457,14 @@ CRUD + `cargarPartidaCompleta(int tiendaId)` — punto de entrada del juego.
 
 ---
 
-## 15. Resumen de Archivos (14 archivos .java + 2 recursos)
+## 16. Resumen de Archivos (14 archivos .java + 2 recursos)
 
 ```
 src/main/java/com/minimart/
 ├── App.java                   45 líneas  — Punto de entrada (FXMLLoader)
 ├── module-info.java           16 líneas  — Declaración de módulo JPMS
 ├── controller/
-│   └── MainController.java    66 líneas  — Controlador principal (inyección FXML)
+│   └── MainController.java   142 líneas  — Controlador principal (inyección FXML + bindings reactivos)
 ├── model/
 │   ├── Tienda.java            49 líneas  — Estado global de partida (3 Properties)
 │   ├── Estanteria.java        46 líneas  — Estantería con stock (1 Property)
@@ -461,4 +485,4 @@ src/main/resources/com/minimart/
 └── styles.css                164 líneas  — Hoja de estilos completa
 ```
 
-**Total:** ~730 líneas de código Java + 384 líneas de recursos.
+**Total:** ~806 líneas de código Java + 384 líneas de recursos.
