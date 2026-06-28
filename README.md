@@ -1,7 +1,7 @@
 # Estado Actual del Proyecto — MiniMart POO Tycoon
 
-> **Sprint completado:** 3 de 7 — Binding de Datos (READ desde BD a la UI)
-> **Fecha:** 2026-06-26
+> **Sprint completado:** 4 de 7 — Game Loop: Lógica en Memoria
+> **Fecha:** 2026-06-28
 
 ---
 
@@ -68,7 +68,8 @@ ProyectoTycoon/
 │       │   ├── module-info.java
 │       │   ├── App.java
 │       │   ├── controller/
-│       │   │   └── MainController.java
+│       │   │   ├── MainController.java
+│       │   │   └── GameLoopService.java        ← Sprint 4
 │       │   ├── model/
 │       │   │   ├── Tienda.java
 │       │   │   ├── Estanteria.java
@@ -175,9 +176,9 @@ public class App extends Application {
 
 ---
 
-## 5. `MainController.java` — Controlador Principal (Sprints 2 + 3)
+## 5. `MainController.java` — Controlador Principal (Sprints 2 + 3 + 4)
 
-142 líneas con inyección FXML + lógica de carga y bindings:
+~170 líneas con inyección FXML + lógica de carga, bindings y game loop:
 
 **Estanterías (5 slots):**
 - `slotEstanteria1-5` (VBox), `imgEstanteria1-5` (ImageView)
@@ -203,7 +204,11 @@ public class App extends Application {
 - Binding reactivo: `labelDinero` ↔ `dineroActualProperty()`, `labelDia` ↔ `diaActualProperty()`
 - Binding reactivo: `stockBar` ↔ `stockActualProperty().divide(stockMaximo)` por cada estantería
 - Opacidad de slots según datos reales (`isActivo()` en cajeros, existencia en estanterías)
-- `getTiendaActual()` expone el modelo para Sprint 4+
+**Lógica Sprint 4:**
+- `initialize()` ahora también llama `iniciarGameLoop()` después de `cargarPartida()`
+- `iniciarGameLoop()` crea un `GameLoopService(tiendaActual, this)` y arranca el Timeline
+- `actualizarVistas()` público refresca las barras de atención de cajeros en cada tick del game loop
+- `getTiendaActual()` expone el modelo para Sprint 5+
 
 ---
 
@@ -383,7 +388,7 @@ CRUD + `cargarPartidaCompleta(int tiendaId)` — punto de entrada del juego.
 
 | Paquete | Archivos | Estado |
 |---|---|---|
-| `controller/` | `MainController.java` | Sprint 3 completado (carga BD + bindings reactivos) |
+| `controller/` | `MainController.java`, `GameLoopService.java` | Sprint 4 completado (game loop con Timeline de 1s) |
 | `view/` | `PanelesView.java`, `package-info.java` | Sprint 2 (esqueleto) |
 | `resources/` | `MainWindow.fxml`, `styles.css` | Sprint 2 completado |
 
@@ -435,36 +440,78 @@ CRUD + `cargarPartidaCompleta(int tiendaId)` — punto de entrada del juego.
 
 ---
 
-## 15. Preparación para Sprint 4
+## 15. Criterios de Aceptación — Sprint 4
 
-### Lo que Sprint 4 podrá hacer
+| CA | Descripción | Estado |
+|---|---|---|
+| CA-01 | `mvn clean compile` → BUILD SUCCESS | ✅ |
+| CA-02 | Game loop arranca sin errores en consola ("Game loop iniciado — ticks cada 1s.") | ✅ |
+| CA-03 | Spawn de clientes visible: `atenderBar1` se mueve (cuenta regresiva 5s) | ✅ |
+| CA-04 | Stock decrementa al spawnear (stockBar1 se acorta al llegar clientes) | ✅ |
+| CA-05 | Dinero aumenta al despachar (labelDinero se actualiza por binding reactivo) | ✅ |
+| CA-06 | `actualizarVistas()` público implementado en MainController | ✅ |
+| CA-07 | `GameLoopService.java` creado en `com.minimart.controller` | ✅ |
+| CA-08 | `GameLoopService` tiene métodos `iniciar()`, `pausar()`, `reanudar()` | ✅ |
+| CA-09 | Timeline usa `Duration.seconds(1)` y `cycleCount = INDEFINITE` | ✅ |
+| CA-10 | Solo `GameLoopService.java` (nuevo) y `MainController.java` (modificado) | ✅ |
 
-- Acceder a `mainController.getTiendaActual()` para el modelo vivo
-- Mutar `tiendaActual.setDineroActual(nuevo)` → `labelDinero` se actualiza solo (binding ya activo)
-- Mutar `estanteria.setStockActual(nuevo)` → `stockBar` se actualiza sola
-- Iterar `tiendaActual.getCajeros()` para gestionar colas de clientes
-- Las barras de atención (`atenderBar1..3`) se actualizarán manualmente en cada tick
+---
 
-### Lo que NO incluye Sprint 3
+## 16. Arquitectura del Game Loop (Sprint 4)
+
+### `GameLoopService.java`
+
+| Componente | Descripción |
+|---|---|
+| `iniciar()` | Crea Timeline con KeyFrame `Duration.seconds(1)` y `cycleCount=INDEFINITE`, llama `play()` |
+| `pausar()` | Pausa el Timeline sin reiniciarlo |
+| `reanudar()` | Reanuda el Timeline desde donde se pausó |
+| `tick()` | Orchestrador: `spawnCliente()` → `procesarDespacho()` → `controller.actualizarVistas()` |
+| `spawnCliente()` | 30% probabilidad, filtra estanterías con stock, elige al azar, decrementa stock, asigna a cajero |
+| `asignarCliente()` | Busca cajero activo con menor cola (`Collections.min`), agrega cliente, resetea cuenta regresiva |
+| `procesarDespacho()` | Decrementa `segundosRestantes`, al llegar a 0 suma dinero y pasa al siguiente cliente |
+
+### Flujo por tick (cada 1s)
+
+```
+1. ¿Llega cliente? → 30% sí: elige producto, crea Cliente, resta stock, asigna al cajero menos ocupado
+2. Cada cajero activo con cola: decrementa segundosRestantes
+3. ¿segundosRestantes <= 0? → cobra cliente, lo saca de cola, inicia siguiente si hay
+4. actualizarVistas(): refresca atenderBar1..3 con progreso
+```
+
+---
+
+## 17. Preparación para Sprint 5
+
+### Lo que Sprint 5 podrá hacer
+
+- Presionar `btnUpgrade1` (Comprar Estantería): nueva estantería aparece con binding de stock ya activo
+- Presionar `btnUpgrade2` (Reabastecer): stock se restaura a `stockMaximo`, ProgressBar se actualiza sola
+- Presionar `btnUpgrade3` (Mejorar Cajero): `tiempoDespacho` se reduce, el game loop se acelera
+- Presionar "Avanzar Día" (Sprint 6) para persistir el estado actual del game loop
+
+### Lo que NO incluye Sprint 4
 
 | Funcionalidad | Sprint |
 |---|---|
-| Game loop (timer, ticks, clientes) | Sprint 4 |
-| Lógica de botones upgrade/contratar | Sprint 5 |
-| Guardado masivo (JuegoDAO) | Sprint 6 |
-| Pantalla de derrota/victoria | Sprint 7 |
+| Handlers de botones upgrade/contratar | Sprint 5 |
+| Persistencia (JuegoDAO, transacciones) | Sprint 6 |
+| Pantalla de resumen de jornada | Sprint 6 |
+| Animación de dinero, stock crítico, reputación, Game Over | Sprint 7 |
 | Tests unitarios | Fuera de scope |
 
 ---
 
-## 16. Resumen de Archivos (14 archivos .java + 2 recursos)
+## 18. Resumen de Archivos (15 archivos .java + 2 recursos)
 
 ```
 src/main/java/com/minimart/
 ├── App.java                   45 líneas  — Punto de entrada (FXMLLoader)
 ├── module-info.java           16 líneas  — Declaración de módulo JPMS
 ├── controller/
-│   └── MainController.java   142 líneas  — Controlador principal (inyección FXML + bindings reactivos)
+│   ├── MainController.java   170 líneas  — Controlador principal (inyección FXML + bindings + game loop)
+│   └── GameLoopService.java  145 líneas  — Game loop con Timeline de 1s (spawn, despacho, UI)
 ├── model/
 │   ├── Tienda.java            49 líneas  — Estado global de partida (3 Properties)
 │   ├── Estanteria.java        46 líneas  — Estantería con stock (1 Property)
@@ -485,4 +532,4 @@ src/main/resources/com/minimart/
 └── styles.css                164 líneas  — Hoja de estilos completa
 ```
 
-**Total:** ~806 líneas de código Java + 384 líneas de recursos.
+**Total:** ~954 líneas de código Java + 384 líneas de recursos.
