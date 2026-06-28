@@ -5,6 +5,8 @@ import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 
+
+
 import com.minimart.dao.TiendaDAO;
 import com.minimart.model.Cajero;
 import com.minimart.model.Estanteria;
@@ -63,13 +65,15 @@ public class MainController {
     @FXML private Button       btnAvanzarDia;
 
     private Tienda tiendaActual;
+    private GameLoopService gameLoopService;
 
     @FXML
     public void initialize() {
-        System.out.println("[MainController] initialize() — Sprint 3: cargando partida desde DB...");
+        System.out.println("[MainController] initialize() — Sprint 4: cargando partida e iniciando game loop...");
         try {
             cargarPartida();
-            System.out.println("[MainController] Partida cargada y bindings establecidos.");
+            iniciarGameLoop();
+            System.out.println("[MainController] Partida cargada, bindings y game loop listos.");
         }
         catch (RuntimeException ex){
             mostrarErrorDB(ex);
@@ -120,7 +124,28 @@ public class MainController {
         labelReputacion.setText("100");
     }
 
-    public Tienda getTiendaActual(){
+    private void iniciarGameLoop(){
+        gameLoopService = new GameLoopService(tiendaActual, this);
+        gameLoopService.iniciar();
+        System.out.println("[MainController] Game loop iniciado — ticks cada 1s.");
+    }
+
+    public void actualizarVistas(){
+        ProgressBar[] barrasAtencion = {atenderBar1, atenderBar2, atenderBar3};
+
+        for (int i = 0; i<tiendaActual.getCajeros().size() && i < barrasAtencion.length; i++) {
+            Cajero c = tiendaActual.getCajeros().get(i);
+            if (c.isActivo() && c.getTamañoCola() > 0) {
+                double progreso = (double) c.getSegundosRestantes() / c.getTiempoDespacho();
+                barrasAtencion[i].setProgress(Math.max(0.0, Math.min(1.0, progreso)));
+            }
+            else {
+                barrasAtencion[i].setProgress(0.0);
+            }
+        }
+    }
+
+    public Tienda getTiendaActual() {
         return tiendaActual;
     }
 
