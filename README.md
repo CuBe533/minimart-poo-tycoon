@@ -1,7 +1,7 @@
 # Estado Actual del Proyecto — MiniMart POO Tycoon
 
-> **Sprint completado:** 4 de 7 — Game Loop: Lógica en Memoria
-> **Fecha:** 2026-06-28
+> **Sprint completado:** 5 de 7 — Operaciones CRUD desde Botones
+> **Fecha:** 2026-06-29
 
 ---
 
@@ -176,9 +176,9 @@ public class App extends Application {
 
 ---
 
-## 5. `MainController.java` — Controlador Principal (Sprints 2 + 3 + 4)
+## 5. `MainController.java` — Controlador Principal (Sprints 2 + 3 + 4 + 5)
 
-~170 líneas con inyección FXML + lógica de carga, bindings y game loop:
+~340 líneas con inyección FXML + lógica de carga, bindings, game loop y handlers de upgrade:
 
 **Estanterías (5 slots):**
 - `slotEstanteria1-5` (VBox), `imgEstanteria1-5` (ImageView)
@@ -209,6 +209,13 @@ public class App extends Application {
 - `iniciarGameLoop()` crea un `GameLoopService(tiendaActual, this)` y arranca el Timeline
 - `actualizarVistas()` público refresca las barras de atención de cajeros en cada tick del game loop
 - `getTiendaActual()` expone el modelo para Sprint 5+
+
+**Lógica Sprint 5:**
+- `configurarHandlers()` enlaza `btnUpgrade1` → `handleComprarEstanteria()`, `btnUpgrade2` → `handleReabastecer()`, `btnUpgrade3` → `handleMejorarCajero()` via `setOnAction()`
+- `handleComprarEstanteria()`: valida límite (5), fondos ($150), crea `Estanteria` con tipo secuencial del catálogo `["Snacks","Bebidas","Lácteos","Dulces","Conservas"]`, persiste con `EstanteriaDAO.save()`, activa slot visual con binding reactivo, descuenta dinero
+- `handleReabastecer()`: filtra estanterías con stock bajo, muestra `ChoiceDialog` para elegir, persiste con `EstanteriaDAO.update()`, descuenta $50
+- `handleMejorarCajero()`: si hay inactivos los contrata (`activo=true`, $200); si no, mejora el de menor nivel (nivel+1, tiempo-2, mínimo 1s, $200), persiste con `CajeroDAO.update()`
+- Helpers: `tieneFondos(costo)` con Alert WARNING, `descontarDinero(monto)`, `actualizarEstadoBotones()` (deshabilita btnUpgrade1 al llegar a 5 estanterías), `mostrarInfo()`
 
 ---
 
@@ -388,7 +395,7 @@ CRUD + `cargarPartidaCompleta(int tiendaId)` — punto de entrada del juego.
 
 | Paquete | Archivos | Estado |
 |---|---|---|
-| `controller/` | `MainController.java`, `GameLoopService.java` | Sprint 4 completado (game loop con Timeline de 1s) |
+| `controller/` | `MainController.java`, `GameLoopService.java` | Sprint 5 completado (CRUD desde botones de upgrade) |
 | `view/` | `PanelesView.java`, `package-info.java` | Sprint 2 (esqueleto) |
 | `resources/` | `MainWindow.fxml`, `styles.css` | Sprint 2 completado |
 
@@ -482,35 +489,81 @@ CRUD + `cargarPartidaCompleta(int tiendaId)` — punto de entrada del juego.
 
 ---
 
-## 17. Preparación para Sprint 5
+## 17. Criterios de Aceptación — Sprint 5
 
-### Lo que Sprint 5 podrá hacer
-
-- Presionar `btnUpgrade1` (Comprar Estantería): nueva estantería aparece con binding de stock ya activo
-- Presionar `btnUpgrade2` (Reabastecer): stock se restaura a `stockMaximo`, ProgressBar se actualiza sola
-- Presionar `btnUpgrade3` (Mejorar Cajero): `tiempoDespacho` se reduce, el game loop se acelera
-- Presionar "Avanzar Día" (Sprint 6) para persistir el estado actual del game loop
-
-### Lo que NO incluye Sprint 4
-
-| Funcionalidad | Sprint |
-|---|---|
-| Handlers de botones upgrade/contratar | Sprint 5 |
-| Persistencia (JuegoDAO, transacciones) | Sprint 6 |
-| Pantalla de resumen de jornada | Sprint 6 |
-| Animación de dinero, stock crítico, reputación, Game Over | Sprint 7 |
-| Tests unitarios | Fuera de scope |
+| CA | Descripción | Estado |
+|---|---|---|
+| CA-01 | `mvn clean compile` → BUILD SUCCESS | ✅ |
+| CA-02 | Consola muestra handlers configurados sin errores | ✅ |
+| CA-03 | Comprar Estantería ($150): slot se activa, dinero descuenta, persiste al reiniciar | ✅ |
+| CA-04 | Reabastecer ($50): ChoiceDialog con estanterías con stock bajo, stock vuelve al máximo | ✅ |
+| CA-05 | Contratar Cajero Inactivo ($200): slot se activa (opacity 1.0), dinero descuenta | ✅ |
+| CA-06 | Mejorar Cajero Activo ($200): nivel+1, tiempo-2 (mín. 1s), dinero descuenta | ✅ |
+| CA-07 | Validación de fondos: Alert WARNING si dinero insuficiente, operación no ejecutada | ✅ |
+| CA-08 | Límite de 5 estanterías: btnUpgrade1 se deshabilita al alcanzarlo | ✅ |
+| CA-09 | Persistencia verificada: al cerrar y reabrir, compras y mejoras sobreviven | ✅ |
+| CA-10 | Solo `MainController.java` modificado (sin cambios en FXML, CSS, DAOs, modelos) | ✅ |
 
 ---
 
-## 18. Resumen de Archivos (15 archivos .java + 2 recursos)
+## 18. Handlers de Upgrade — Arquitectura (Sprint 5)
+
+### Catálogo de productos
+
+| Índice | Tipo | Adquisición |
+|---|---|---|
+| 0 | Snacks | Semilla (Sprint 0) |
+| 1 | Bebidas | 1ª compra |
+| 2 | Lácteos | 2ª compra |
+| 3 | Dulces | 3ª compra |
+| 4 | Conservas | 4ª compra |
+
+### Resumen de operaciones
+
+| Botón | Operación | Costo | DAO | Límite |
+|---|---|---|---|---|
+| `btnUpgrade1` | Comprar Estantería | $150 | `EstanteriaDAO.save()` | 5 estanterías |
+| `btnUpgrade2` | Reabastecer stock | $50 | `EstanteriaDAO.update()` | — |
+| `btnUpgrade3` | Contratar / Mejorar Cajero | $200 | `CajeroDAO.update()` | 3 cajeros activos |
+
+### Flujo de validación unificado
+
+```
+presionar botón → verificar límite (si aplica) → tieneFondos()?
+  ├─ No → Alert WARNING "Fondos insuficientes" → fin
+  └─ Sí → ejecutar operación en BD → mutar modelo en memoria
+         → descontarDinero() → actualizar UI → actualizarEstadoBotones()
+```
+
+---
+
+## 19. Preparación para Sprint 6
+
+### Lo que Sprint 6 podrá hacer
+
+- Presionar `btnAvanzarDia`: pausar game loop, persistir estado completo con `JuegoDAO.guardarEstadoCompleto()`, incrementar día, mostrar resumen de jornada
+- Usar `GameLoopService.pausar()` y `GameLoopService.reanudar()` (disponibles desde Sprint 4)
+- Modificar `App.java` para detectar partida existente y ofrecer "Nueva Partida / Continuar"
+
+### Lo que NO incluye Sprint 5
+
+| Funcionalidad | Sprint |
+|---|---|
+| Guardado masivo al avanzar día (JuegoDAO, transacciones) | Sprint 6 |
+| Pantalla de resumen de jornada | Sprint 6 |
+| Diálogo de nueva partida / continuar al iniciar | Sprint 6 |
+| Animación de dinero, stock crítico, reputación, Game Over | Sprint 7 |
+
+---
+
+## 20. Resumen de Archivos (15 archivos .java + 2 recursos)
 
 ```
 src/main/java/com/minimart/
 ├── App.java                   45 líneas  — Punto de entrada (FXMLLoader)
 ├── module-info.java           16 líneas  — Declaración de módulo JPMS
 ├── controller/
-│   ├── MainController.java   170 líneas  — Controlador principal (inyección FXML + bindings + game loop)
+│   ├── MainController.java   340 líneas  — Controlador principal (inyección FXML + bindings + game loop + handlers upgrade)
 │   └── GameLoopService.java  145 líneas  — Game loop con Timeline de 1s (spawn, despacho, UI)
 ├── model/
 │   ├── Tienda.java            49 líneas  — Estado global de partida (3 Properties)
