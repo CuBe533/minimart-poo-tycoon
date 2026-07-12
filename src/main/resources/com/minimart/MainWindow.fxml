@@ -6,135 +6,99 @@
 <?import javafx.geometry.Insets?>
 
 <BorderPane
-    xmlns="http://javafx.openjfx.com/javafx/21"
-    xmlns:fx="http://javafx.com/fxml/1"
-    fx:controller="com.minimart.controller.MainController"
-    prefWidth="1024"
-    prefHeight="768"
-    styleClass="ventana-principal">
+        xmlns="http://javafx.openjfx.com/javafx/21"
+        xmlns:fx="http://javafx.com/fxml/1"
+        fx:controller="com.minimart.controller.MainController"
+        prefWidth="1024"
+        prefHeight="768"
+        styleClass="ventana-principal">
 
-    <!-- ═══════════════════════════════════════════════════════════════════
-         ZONA CENTRAL — VBox con franja de estanterías y franja de cajeros
-         ═══════════════════════════════════════════════════════════════════ -->
     <center>
         <VBox styleClass="zona-central">
 
-            <!-- ── Franja superior: ESTANTERÍAS (#90EE90) ────────────────── -->
-            <HBox styleClass="franja-estanterias" VBox.vgrow="ALWAYS" spacing="12" alignment="CENTER">
+            <HBox styleClass="franja-estanterias" VBox.vgrow="ALWAYS" spacing="30" alignment="CENTER">
                 <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
 
                 <!-- Slot estantería 1 -->
-                <VBox fx:id="slotEstanteria1" styleClass="slot-estanteria" alignment="CENTER" spacing="6">
-                    <ImageView fx:id="imgEstanteria1" fitWidth="80" fitHeight="120" preserveRatio="true">
-                        <image><Image url="https://placehold.co/80x120/90EE90/333333/png" backgroundLoading="true"/></image>
-                    </ImageView>
-                    <ProgressBar fx:id="stockBar1" prefWidth="80" progress="1.0" styleClass="barra-stock"/>
+                <VBox fx:id="slotEstanteria1" styleClass="slot-estanteria" alignment="CENTER" spacing="6" prefWidth="126" maxWidth="126">
+                    <ImageView fx:id="imgEstanteria1" fitWidth="170" preserveRatio="true" smooth="false"/>
+                    <ProgressBar fx:id="stockBar1" prefWidth="110" progress="1.0" styleClass="barra-stock"/>
                     <Label fx:id="labelTipo1" text="—" styleClass="label-tipo-producto"/>
                 </VBox>
 
                 <!-- Slot estantería 2 -->
-                <VBox fx:id="slotEstanteria2" styleClass="slot-estanteria" alignment="CENTER" spacing="6" opacity="0.3">
-                    <ImageView fx:id="imgEstanteria2" fitWidth="80" fitHeight="120" preserveRatio="true">
-                        <image><Image url="https://placehold.co/80x120/90EE90/333333/png" backgroundLoading="true"/></image>
-                    </ImageView>
-                    <ProgressBar fx:id="stockBar2" prefWidth="80" progress="0.0" styleClass="barra-stock"/>
+                <VBox fx:id="slotEstanteria2" styleClass="slot-estanteria" alignment="CENTER" spacing="6" prefWidth="126" maxWidth="126" opacity="0.3">
+                    <ImageView fx:id="imgEstanteria2" fitWidth="170" preserveRatio="true" smooth="false"/>
+                    <ProgressBar fx:id="stockBar2" prefWidth="110" progress="0.0" styleClass="barra-stock"/>
                     <Label fx:id="labelTipo2" text="—" styleClass="label-tipo-producto"/>
                 </VBox>
 
                 <!-- Slot estantería 3 -->
-                <VBox fx:id="slotEstanteria3" styleClass="slot-estanteria" alignment="CENTER" spacing="6" opacity="0.3">
-                    <ImageView fx:id="imgEstanteria3" fitWidth="80" fitHeight="120" preserveRatio="true">
-                        <image><Image url="https://placehold.co/80x120/90EE90/333333/png" backgroundLoading="true"/></image>
-                    </ImageView>
-                    <ProgressBar fx:id="stockBar3" prefWidth="80" progress="0.0" styleClass="barra-stock"/>
+                <VBox fx:id="slotEstanteria3" styleClass="slot-estanteria" alignment="CENTER" spacing="6" prefWidth="126" maxWidth="126" opacity="0.3">
+                    <ImageView fx:id="imgEstanteria3" fitWidth="170" preserveRatio="true" smooth="false"/>
+                    <ProgressBar fx:id="stockBar3" prefWidth="110" progress="0.0" styleClass="barra-stock"/>
                     <Label fx:id="labelTipo3" text="—" styleClass="label-tipo-producto"/>
                 </VBox>
 
                 <!-- Slot estantería 4 -->
-                <VBox fx:id="slotEstanteria4" styleClass="slot-estanteria" alignment="CENTER" spacing="6" opacity="0.3">
-                    <ImageView fx:id="imgEstanteria4" fitWidth="80" fitHeight="120" preserveRatio="true">
-                        <image><Image url="https://placehold.co/80x120/90EE90/333333/png" backgroundLoading="true"/></image>
-                    </ImageView>
-                    <ProgressBar fx:id="stockBar4" prefWidth="80" progress="0.0" styleClass="barra-stock"/>
+                <VBox fx:id="slotEstanteria4" styleClass="slot-estanteria" alignment="CENTER" spacing="6" prefWidth="126" maxWidth="126" opacity="0.3">
+                    <ImageView fx:id="imgEstanteria4" fitWidth="170" preserveRatio="true" smooth="false"/>
+                    <ProgressBar fx:id="stockBar4" prefWidth="110" progress="0.0" styleClass="barra-stock"/>
                     <Label fx:id="labelTipo4" text="—" styleClass="label-tipo-producto"/>
                 </VBox>
 
                 <!-- Slot estantería 5 -->
-                <VBox fx:id="slotEstanteria5" styleClass="slot-estanteria" alignment="CENTER" spacing="6" opacity="0.3">
-                    <ImageView fx:id="imgEstanteria5" fitWidth="80" fitHeight="120" preserveRatio="true">
-                        <image><Image url="https://placehold.co/80x120/90EE90/333333/png" backgroundLoading="true"/></image>
-                    </ImageView>
-                    <ProgressBar fx:id="stockBar5" prefWidth="80" progress="0.0" styleClass="barra-stock"/>
+                <VBox fx:id="slotEstanteria5" styleClass="slot-estanteria" alignment="CENTER" spacing="6" prefWidth="126" maxWidth="126" opacity="0.3">
+                    <ImageView fx:id="imgEstanteria5" fitWidth="170" preserveRatio="true" smooth="false"/>
+                    <ProgressBar fx:id="stockBar5" prefWidth="110" progress="0.0" styleClass="barra-stock"/>
                     <Label fx:id="labelTipo5" text="—" styleClass="label-tipo-producto"/>
                 </VBox>
 
             </HBox>
 
-            <!-- ── Franja inferior: CAJEROS + COMPRADORES (#FFB347) ───────── -->
-            <HBox styleClass="franja-cajeros" prefHeight="280" spacing="16" alignment="CENTER_LEFT">
+            <HBox styleClass="franja-cajeros" prefHeight="280" spacing="20" alignment="CENTER_LEFT">
                 <padding><Insets top="16" right="16" bottom="16" left="24"/></padding>
 
                 <!-- Slot cajero 1 -->
-                <VBox fx:id="slotCajero1" styleClass="slot-cajero" alignment="CENTER" spacing="6">
-                    <ImageView fx:id="imgCajero1" fitWidth="60" fitHeight="80" preserveRatio="true">
-                        <image><Image url="https://placehold.co/60x80/FFB347/333333/png" backgroundLoading="true"/></image>
-                    </ImageView>
-                    <ProgressBar fx:id="atenderBar1" prefWidth="60" progress="0.0" styleClass="barra-atencion"/>
+                <VBox fx:id="slotCajero1" styleClass="slot-cajero" alignment="CENTER" spacing="6" prefWidth="101" maxWidth="101">
+                    <ImageView fx:id="imgCajero1" fitWidth="110" preserveRatio="true" smooth="false"/>
+                    <ProgressBar fx:id="atenderBar1" prefWidth="85" progress="0.0" styleClass="barra-atencion"/>
                 </VBox>
 
                 <!-- Slot cajero 2 -->
-                <VBox fx:id="slotCajero2" styleClass="slot-cajero" alignment="CENTER" spacing="6" opacity="0.3">
-                    <ImageView fx:id="imgCajero2" fitWidth="60" fitHeight="80" preserveRatio="true">
-                        <image><Image url="https://placehold.co/60x80/FFB347/333333/png" backgroundLoading="true"/></image>
-                    </ImageView>
-                    <ProgressBar fx:id="atenderBar2" prefWidth="60" progress="0.0" styleClass="barra-atencion"/>
+                <VBox fx:id="slotCajero2" styleClass="slot-cajero" alignment="CENTER" spacing="6" prefWidth="101" maxWidth="101" opacity="0.3">
+                    <ImageView fx:id="imgCajero2" fitWidth="90" preserveRatio="true" smooth="false"/>
+                    <ProgressBar fx:id="atenderBar2" prefWidth="85" progress="0.0" styleClass="barra-atencion"/>
                 </VBox>
 
                 <!-- Slot cajero 3 -->
-                <VBox fx:id="slotCajero3" styleClass="slot-cajero" alignment="CENTER" spacing="6" opacity="0.3">
-                    <ImageView fx:id="imgCajero3" fitWidth="60" fitHeight="80" preserveRatio="true">
-                        <image><Image url="https://placehold.co/60x80/FFB347/333333/png" backgroundLoading="true"/></image>
-                    </ImageView>
-                    <ProgressBar fx:id="atenderBar3" prefWidth="60" progress="0.0" styleClass="barra-atencion"/>
+                <VBox fx:id="slotCajero3" styleClass="slot-cajero" alignment="CENTER" spacing="6" prefWidth="101" maxWidth="101" opacity="0.3">
+                    <ImageView fx:id="imgCajero3" fitWidth="90" preserveRatio="true" smooth="false"/>
+                    <ProgressBar fx:id="atenderBar3" prefWidth="85" progress="0.0" styleClass="barra-atencion"/>
                 </VBox>
 
-                <!-- Separador visual entre cajeros y compradores -->
                 <Separator orientation="VERTICAL" styleClass="separador-cajeros"/>
 
-                <!-- Compradores en espera (slots visuales, sin lógica hasta Sprint 4) -->
-                <ImageView fx:id="comprador1" fitWidth="50" fitHeight="60" opacity="0.4" preserveRatio="true">
-                    <image><Image url="https://placehold.co/50x60/FFD700/333333/png" backgroundLoading="true"/></image>
-                </ImageView>
-                <ImageView fx:id="comprador2" fitWidth="50" fitHeight="60" opacity="0.4" preserveRatio="true">
-                    <image><Image url="https://placehold.co/50x60/FFD700/333333/png" backgroundLoading="true"/></image>
-                </ImageView>
-                <ImageView fx:id="comprador3" fitWidth="50" fitHeight="60" opacity="0.4" preserveRatio="true">
-                    <image><Image url="https://placehold.co/50x60/FFD700/333333/png" backgroundLoading="true"/></image>
-                </ImageView>
-                <ImageView fx:id="comprador4" fitWidth="50" fitHeight="60" opacity="0.4" preserveRatio="true">
-                    <image><Image url="https://placehold.co/50x60/FFD700/333333/png" backgroundLoading="true"/></image>
-                </ImageView>
+                <!-- Compradores -->
+                <ImageView fx:id="comprador1" fitWidth="90" opacity="0.4" preserveRatio="true" smooth="false"/>
+                <ImageView fx:id="comprador2" fitWidth="90" opacity="0.4" preserveRatio="true" smooth="false"/>
+                <ImageView fx:id="comprador3" fitWidth="90" opacity="0.4" preserveRatio="true" smooth="false"/>
+                <ImageView fx:id="comprador4" fitWidth="90" opacity="0.4" preserveRatio="true" smooth="false"/>
 
             </HBox>
         </VBox>
     </center>
 
-    <!-- ═══════════════════════════════════════════════════════════════════
-         PANEL DERECHO — Upgrades + Estadísticas (200px fijo)
-         ═══════════════════════════════════════════════════════════════════ -->
     <right>
-        <VBox styleClass="panel-derecho" minWidth="200" maxWidth="200" spacing="12">
+        <VBox styleClass="panel-derecho" minWidth="200" maxWidth="200" spacing="8">
             <padding><Insets top="16" right="12" bottom="16" left="12"/></padding>
 
-            <!-- Título del panel -->
             <Label text="UPGRADES" styleClass="titulo-panel"/>
 
-            <!-- ── Tarjeta Upgrade 1 — Comprar Estantería ─────────────────── -->
-            <VBox styleClass="tarjeta-upgrade" spacing="6">
-                <HBox spacing="8" alignment="CENTER_LEFT">
-                    <ImageView fitWidth="40" fitHeight="40" preserveRatio="true">
-                        <image><Image url="https://placehold.co/40x40/808080/FFD700/png" backgroundLoading="true"/></image>
-                    </ImageView>
+            <VBox styleClass="tarjeta-upgrade" spacing="4">
+                <HBox spacing="6" alignment="CENTER_LEFT" >
+                    <ImageView fx:id="imgUpgradeEstanteria" fitWidth="36" fitHeight="36" preserveRatio="true" smooth="false"/>
+
                     <VBox spacing="2">
                         <Label text="Estantería" styleClass="label-upgrade-nombre"/>
                         <Label text="\$150" styleClass="label-upgrade-costo"/>
@@ -146,15 +110,13 @@
                         style="-fx-background-color:#FFD700; -fx-font-weight:bold; -fx-font-size:11px;"/>
             </VBox>
 
-            <!-- ── Tarjeta Upgrade 2 — Reabastecer Stock ──────────────────── -->
-            <VBox styleClass="tarjeta-upgrade" spacing="6">
-                <HBox spacing="8" alignment="CENTER_LEFT">
-                    <ImageView fitWidth="40" fitHeight="40" preserveRatio="true">
-                        <image><Image url="https://placehold.co/40x40/808080/FFD700/png" backgroundLoading="true"/></image>
-                    </ImageView>
+            <VBox styleClass="tarjeta-upgrade" spacing="4">
+                <HBox spacing="6" alignment="CENTER_LEFT">
+                    <ImageView fx:id="imgUpgradeReabastecer" fitWidth="24" fitHeight="24" preserveRatio="true" smooth="false"
+                    scaleX="1.8" scaleY="1.8" translateX="8"/>
                     <VBox spacing="2">
-                        <Label text="Reabastecer" styleClass="label-upgrade-nombre"/>
-                        <Label text="\$50" styleClass="label-upgrade-costo"/>
+                        <Label text="    Reabastecer" styleClass="label-upgrade-nombre"/>
+                        <Label text="   \$50" styleClass="label-upgrade-costo"/>
                     </VBox>
                 </HBox>
                 <Button fx:id="btnUpgrade2"
@@ -163,12 +125,9 @@
                         style="-fx-background-color:#FFD700; -fx-font-weight:bold; -fx-font-size:11px;"/>
             </VBox>
 
-            <!-- ── Tarjeta Upgrade 3 — Mejorar Cajero ────────────────────── -->
-            <VBox styleClass="tarjeta-upgrade" spacing="6">
-                <HBox spacing="8" alignment="CENTER_LEFT">
-                    <ImageView fitWidth="40" fitHeight="40" preserveRatio="true">
-                        <image><Image url="https://placehold.co/40x40/808080/FFD700/png" backgroundLoading="true"/></image>
-                    </ImageView>
+            <VBox styleClass="tarjeta-upgrade" spacing="4">
+                <HBox spacing="6" alignment="CENTER_LEFT">
+                    <ImageView fx:id="imgUpgradeCajero" fitWidth="36" fitHeight="36" preserveRatio="true" smooth="false"/>
                     <VBox spacing="2">
                         <Label text="Cajero" styleClass="label-upgrade-nombre"/>
                         <Label text="\$200" styleClass="label-upgrade-costo"/>
@@ -180,35 +139,46 @@
                         style="-fx-background-color:#FFD700; -fx-font-weight:bold; -fx-font-size:11px;"/>
             </VBox>
 
-            <!-- ── Separador ──────────────────────────────────────────────── -->
             <Separator/>
 
-            <!-- ── Sección de estadísticas ────────────────────────────────── -->
             <Label text="ESTADÍSTICAS" styleClass="titulo-panel"/>
 
-            <VBox styleClass="seccion-stats" spacing="8">
-                <HBox spacing="6" alignment="CENTER_LEFT">
+            <VBox styleClass="seccion-stats" spacing="4">
+                <HBox spacing="5" alignment="CENTER_LEFT">
                     <Label text="⭐" styleClass="icono-stat"/>
                     <Label text="Reputación:" styleClass="label-stat-nombre"/>
                 </HBox>
                 <Label fx:id="labelReputacion" text="100" styleClass="label-stat-valor"/>
 
-                <HBox spacing="6" alignment="CENTER_LEFT">
+                <HBox spacing="5" alignment="CENTER_LEFT">
                     <Label text="💰" styleClass="icono-stat"/>
                     <Label text="Dinero:" styleClass="label-stat-nombre"/>
                 </HBox>
                 <Label fx:id="labelDinero" text="\$500.00" styleClass="label-stat-valor label-dinero"/>
 
-                <HBox spacing="6" alignment="CENTER_LEFT">
+                <HBox spacing="5" alignment="CENTER_LEFT">
                     <Label text="📅" styleClass="icono-stat"/>
                     <Label fx:id="labelDia" text="DÍA 1" styleClass="label-stat-nombre"/>
                 </HBox>
             </VBox>
+            <AnchorPane prefWidth="220" prefHeight="120" style="-fx-background-color: rgba(0,0,0,0.05);">
+                <!-- Mostrador (izquierda, más grande) -->
+                <ImageView fx:id="imgMostradorPanel" fitWidth="160" preserveRatio="true" smooth="false"
+                           AnchorPane.leftAnchor="10" AnchorPane.bottomAnchor="10"/>
 
-            <!-- Spacer para empujar el botón al fondo -->
+                <ImageView fx:id="imgClientePanel" fitWidth="100" preserveRatio="true" smooth="false"
+                           AnchorPane.leftAnchor="-30" AnchorPane.bottomAnchor="10" opacity="0.0"/>
+
+
+                <!-- Personaje (derecha, posición fija) -->
+                <ImageView fx:id="imgCajeroPanelDerecho" fitWidth="90" preserveRatio="true" smooth="false"
+                           AnchorPane.rightAnchor="1" AnchorPane.bottomAnchor="10"/>
+
+
+            </AnchorPane>
+
             <Region VBox.vgrow="ALWAYS"/>
 
-            <!-- ── Botón avanzar día ──────────────────────────────────────── -->
             <Button fx:id="btnAvanzarDia"
                     text="DIA 1 →"
                     maxWidth="Infinity"

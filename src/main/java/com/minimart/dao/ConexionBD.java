@@ -104,6 +104,16 @@ public class ConexionBD {
                 WHERE NOT EXISTS (
                     SELECT 1 FROM cajeros WHERE tienda_id = 1
                 )
+                UNION ALL
+                SELECT 1, 1, 5, 0
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM cajeros WHERE tienda_id = 1
+                )
+                UNION ALL
+                SELECT 1, 1, 5, 0
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM cajeros WHERE tienda_id = 1
+                )
             """);
 
             stmt.execute("""

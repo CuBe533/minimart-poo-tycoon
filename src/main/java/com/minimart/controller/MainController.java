@@ -1,20 +1,34 @@
 package com.minimart.controller;
 
+import javafx.animation.Interpolator;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 import com.minimart.dao.CajeroDAO;
 import com.minimart.dao.EstanteriaDAO;
+import com.minimart.dao.JuegoDAO;
 import com.minimart.dao.TiendaDAO;
 
 import com.minimart.model.Cajero;
 import com.minimart.model.Estanteria;
 import com.minimart.model.Tienda;
-import com.minimart.model.Cliente;
+import javafx.util.Duration;
 
+import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -61,14 +75,24 @@ public class MainController {
     @FXML private ImageView    comprador3;
     @FXML private ImageView    comprador4;
 
+    // ─── IMAGEN DEL CAJERO EN EL PANEL DERECHO (ZONA GRIS) ───
+    @FXML private ImageView    imgCajeroPanelDerecho;
+
     @FXML private Button       btnUpgrade1;
     @FXML private Button       btnUpgrade2;
     @FXML private Button       btnUpgrade3;
+
+    @FXML private ImageView    imgUpgradeEstanteria;
+    @FXML private ImageView    imgUpgradeReabastecer;
+    @FXML private ImageView    imgUpgradeCajero;
 
     @FXML private Label        labelDinero;
     @FXML private Label        labelReputacion;
     @FXML private Label        labelDia;
     @FXML private Button       btnAvanzarDia;
+    @FXML private ImageView imgMostradorPanel;
+    @FXML private ImageView imgClientePanel;
+
 
     private Tienda tiendaActual;
     private GameLoopService gameLoopService;
@@ -81,24 +105,88 @@ public class MainController {
     private static final double COSTO_REABASTECER =  50.0;
     private static final double COSTO_CAJERO      = 200.0;
 
+    private static final double UMBRAL_STOCK_CRITICO = 0.3;
+    private static final String ESTILO_STOCK_CRITICO = "-fx-accent: #E24B4A;";
+
+    // ─── SPRITES ──────────────────────────────────────────────────────────────
+    private final Map<String, Image> spritesProducto = Map.of(
+            "Snacks",    cargarSprite("producto_snacks.gif"),
+            "Bebidas",   cargarSprite("producto_bebidas.gif"),
+            "Lácteos",   cargarSprite("producto_lacteos.gif"),
+            "Dulces",    cargarSprite("producto_dulces.gif"),
+            "Conservas", cargarSprite("producto_conservas.gif")
+    );
+
+    private final Image spriteCajero = cargarSprite("cajero.gif");
+    private final Image spriteJugador = cargarSprite("cliente.gif");
+    private final Image spriteCliente = cargarSprite("ClienteEstatico1.gif");
+    private final Image spriteUpgradeEstanteria  = cargarSprite("upgrade_estanteria.gif");
+    private final Image spriteUpgradeReabastecer = cargarSprite("upgrade_reabastecer.gif");
+    private final Image spriteUpgradeCajero      = cargarSprite("MejoraCajero.gif");
+
+    private final Image spriteClienteCaminando= cargarSprite("clienteCaminando1.gif");
+    private final Image spriteCliienteEstatico= cargarSprite("ClienteEstatico1.gif");
+    private final Image spriteMostrador1 = cargarSprite("Mostrador.gif");
+    private final Image spriteMostrador2 = cargarSprite("Mostrador (2).gif");
+    private final Image spriteMostrador3 = cargarSprite("Mostrador (3).gif");
+
+
+    private static Image cargarSprite(String nombreArchivo) {
+        String ruta = "/com/minimart/imagenes/" + nombreArchivo;
+        try (java.io.InputStream in = MainController.class.getResourceAsStream(ruta)) {
+            if (in == null) {
+                System.err.println("[MainController] ⚠ Sprite no encontrado (se omite): " + ruta);
+                return null;
+            }
+            return new Image(in);
+        } catch (Exception ex) {
+            System.err.println("[MainController] ⚠ Error cargando sprite " + ruta + ": " + ex.getMessage());
+            return null;
+        }
+    }
+
     @FXML
     public void initialize() {
-        System.out.println("[MainController] initialize() — Sprint 5: cargando partida, game loop y handlers...");
+        System.out.println("[MainController] initialize() — Cargando partida...");
         try {
             cargarPartida();
             iniciarGameLoop();
             configurarHandlers();
-            System.out.println("[MainController] Partida cargada, game loop y handlers listos.");
+
+            // Asignar imágenes estáticas
+            asignarImagen(imgCajero1, spriteCajero);
+            asignarImagen(imgCajero2, spriteCajero);
+            asignarImagen(imgCajero3, spriteCajero);
+
+            asignarImagen(imgUpgradeEstanteria, spriteUpgradeEstanteria);
+            asignarImagen(imgUpgradeReabastecer, spriteUpgradeReabastecer);
+            asignarImagen(imgUpgradeCajero, spriteUpgradeCajero);
+            asignarImagen(imgCajeroPanelDerecho, spriteJugador);
+
+            asignarImagen(comprador1, spriteCliente);
+            asignarImagen(comprador2, spriteCliente);
+            asignarImagen(comprador3, spriteCliente);
+            asignarImagen(comprador4, spriteCliente);
+
+            asignarImagen(imgMostradorPanel, cargarSprite("Mostrador.gif"));
+
+
+            System.out.println("[MainController] Inicialización completa.");
         }
         catch (RuntimeException ex){
             mostrarErrorDB(ex);
         }
     }
 
+    private static void asignarImagen(ImageView view, Image img) {
+        if (view != null) view.setImage(img);
+    }
+
     private void configurarHandlers() {
         btnUpgrade1.setOnAction(e -> handleComprarEstanteria());
         btnUpgrade2.setOnAction(e -> handleReabastecer());
         btnUpgrade3.setOnAction(e -> handleMejorarCajero());
+        btnAvanzarDia.setOnAction(e -> handleAvanzarDia());
         actualizarEstadoBotones();
     }
 
@@ -106,10 +194,16 @@ public class MainController {
         TiendaDAO dao = new TiendaDAO();
         tiendaActual = dao.cargarPartidaCompleta(1);
 
-        VBox[]        slotsEstanteria = { slotEstanteria1, slotEstanteria2, slotEstanteria3, slotEstanteria4, slotEstanteria5 };
-        Label[]       labelsTipo      = { labelTipo1,      labelTipo2,      labelTipo3,      labelTipo4,      labelTipo5      };
-        ProgressBar[] barrasStock     = { stockBar1,       stockBar2,       stockBar3,       stockBar4,       stockBar5       };
-        VBox[]        slotsCajero     = { slotCajero1,     slotCajero2,     slotCajero3     };
+        List<Cajero> cajerosOrdenados = tiendaActual.getCajeros().stream()
+                .sorted(Comparator.comparingInt(Cajero::getId))
+                .collect(Collectors.toList());
+        tiendaActual.setCajeros(cajerosOrdenados);
+
+        VBox[]        slotsEstanteria    = { slotEstanteria1, slotEstanteria2, slotEstanteria3, slotEstanteria4, slotEstanteria5 };
+        Label[]       labelsTipo         = { labelTipo1,      labelTipo2,      labelTipo3,      labelTipo4,      labelTipo5      };
+        ProgressBar[] barrasStock        = { stockBar1,       stockBar2,       stockBar3,       stockBar4,       stockBar5       };
+        ImageView[]   imagenesEstanteria = { imgEstanteria1,  imgEstanteria2,  imgEstanteria3,  imgEstanteria4,  imgEstanteria5  };
+        VBox[]        slotsCajero        = { slotCajero1,     slotCajero2,     slotCajero3     };
 
         for (int i = 0; i < slotsEstanteria.length; i++){
             slotsEstanteria[i].setOpacity(0.3);
@@ -125,9 +219,10 @@ public class MainController {
             }
             slotsEstanteria[idx].setOpacity(1.0);
             labelsTipo[idx].setText(e.getTipoProducto());
+            imagenesEstanteria[idx].setImage(spritesProducto.get(e.getTipoProducto()));
 
             barrasStock[idx].progressProperty().bind(
-              e.stockActualProperty().divide(e.getStockMaximo())
+                    e.stockActualProperty().divide(e.getStockMaximo())
             );
         }
 
@@ -141,6 +236,9 @@ public class MainController {
         );
         labelDia.textProperty().bind(
                 tiendaActual.diaActualProperty().asString("DÍA: %d")
+        );
+        btnAvanzarDia.textProperty().bind(
+                tiendaActual.diaActualProperty().asString("DIA %d →")
         );
 
         labelReputacion.setText("100");
@@ -165,6 +263,52 @@ public class MainController {
                 barrasAtencion[i].setProgress(0.0);
             }
         }
+
+        ProgressBar[] barrasStock = { stockBar1, stockBar2, stockBar3, stockBar4, stockBar5 };
+        for (ProgressBar barra : barrasStock) {
+            if (barra.getProgress() >= 0.0 && barra.getProgress() < UMBRAL_STOCK_CRITICO) {
+                barra.setStyle(ESTILO_STOCK_CRITICO);
+            } else {
+                barra.setStyle(null);
+            }
+        }
+    }
+
+    public void actualizarLabelReputacion(double reputacion) {
+        labelReputacion.setText(String.format("%.0f", reputacion));
+    }
+
+    public Label getLabelDinero() {
+        return labelDinero;
+    }
+
+    public void mostrarGameOver(int diaActual, double dineroMaximoAlcanzado) {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/minimart/GameOver.fxml")
+            );
+            Parent raiz = loader.load();
+            GameOverController gameOverController = loader.getController();
+
+            Stage stagePrincipal = (Stage) btnAvanzarDia.getScene().getWindow();
+
+            Stage modal = new Stage();
+            modal.initModality(Modality.APPLICATION_MODAL);
+            modal.setTitle("MiniMart — Game Over");
+            modal.setResizable(false);
+            modal.setScene(new Scene(raiz));
+
+            gameOverController.setDatos(
+                    diaActual, dineroMaximoAlcanzado,
+                    modal, stagePrincipal
+            );
+
+            modal.show();
+
+        } catch (IOException ex) {
+            System.err.println("[MainController] Error cargando GameOver.fxml: " + ex.getMessage());
+            ex.printStackTrace();
+        }
     }
 
     private void handleComprarEstanteria() {
@@ -184,14 +328,15 @@ public class MainController {
         tiendaActual.getEstanterias().add(estanteria);
         descontarDinero(COSTO_ESTANTERIA);
 
-        // Actualizar el slot visual correspondiente
         VBox[] slots = { slotEstanteria1, slotEstanteria2, slotEstanteria3, slotEstanteria4, slotEstanteria5 };
         Label[] labels = { labelTipo1, labelTipo2, labelTipo3, labelTipo4, labelTipo5 };
         ProgressBar[] barras = { stockBar1, stockBar2, stockBar3, stockBar4, stockBar5 };
+        ImageView[] imagenes = { imgEstanteria1, imgEstanteria2, imgEstanteria3, imgEstanteria4, imgEstanteria5 };
 
         int idx = nuevaPosicion - 1;
         slots[idx].setOpacity(1.0);
         labels[idx].setText(tipo);
+        imagenes[idx].setImage(spritesProducto.get(tipo));
         barras[idx].progressProperty().bind(
                 estanteria.stockActualProperty().divide(estanteria.getStockMaximo())
         );
@@ -242,7 +387,6 @@ public class MainController {
                 .collect(Collectors.toList());
 
         if (!inactivos.isEmpty()) {
-            // Contratar el primer cajero inactivo
             if (!tieneFondos(COSTO_CAJERO)) return;
 
             Cajero cajero = inactivos.get(0);
@@ -250,16 +394,24 @@ public class MainController {
             new CajeroDAO().update(cajero);
             descontarDinero(COSTO_CAJERO);
 
-            // Actualizar slot visual
+            // Buscar primer slot inactivo y encenderlo
             VBox[] slots = { slotCajero1, slotCajero2, slotCajero3 };
-            int idx = tiendaActual.getCajeros().indexOf(cajero);
-            if (idx >= 0 && idx < slots.length) {
-                slots[idx].setOpacity(1.0);
+            boolean slotIluminado = false;
+            for (int i = 0; i < slots.length; i++) {
+                if (slots[i].getOpacity() == 0.3) {
+                    slots[i].setOpacity(1.0);
+                    System.out.println("Slot " + (i+1) + " iluminado.");
+                    slotIluminado = true;
+                    break;
+                }
+            }
+            if (!slotIluminado) {
+                System.out.println("No hay slots apagados.");
             }
 
             System.out.println("[MainController] Cajero contratado: " + cajero);
         } else {
-            // Mejorar el cajero activo con menor nivel
+            // Mejorar cajero existente (código actual sin cambios)
             Cajero peor = tiendaActual.getCajeros().stream()
                     .filter(Cajero::isActivo)
                     .min((a, b) -> Integer.compare(a.getNivelMejora(), b.getNivelMejora()))
@@ -282,6 +434,63 @@ public class MainController {
         }
 
         actualizarEstadoBotones();
+    }
+
+    private void handleAvanzarDia() {
+        gameLoopService.pausar();
+
+        int diaQueTermina = tiendaActual.getDiaActual();
+        int ventas = gameLoopService.getVentasDelDia();
+        double ganancia = gameLoopService.getDineroGanadoDia();
+
+        try {
+            new JuegoDAO().guardarEstadoCompleto(tiendaActual);
+            tiendaActual.setDiaActual(diaQueTermina + 1);
+            gameLoopService.reiniciarContadoresDia();
+            mostrarResumenDia(diaQueTermina, ventas, ganancia);
+
+        } catch (RuntimeException ex) {
+            System.err.println("[MainController] Error guardando estado del día: " + ex.getMessage());
+            ex.printStackTrace();
+            mostrarInfo("Error de guardado",
+                    "No se pudo guardar el progreso del día en la base de datos.\n" +
+                            "El juego continuará, pero verifica tu conexión a la BD.");
+            gameLoopService.reanudar();
+        }
+    }
+
+    private void mostrarResumenDia(int diaQueTermina, int ventas, double ganancia) {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/minimart/ResumenDia.fxml")
+            );
+            Parent raiz = loader.load();
+            ResumenDiaController resumenController = loader.getController();
+
+            Stage modal = new Stage();
+            modal.initModality(Modality.APPLICATION_MODAL);
+            modal.setTitle("MiniMart — Resumen del Día");
+            modal.setResizable(false);
+            modal.setScene(new Scene(raiz));
+
+            resumenController.setDatos(
+                    diaQueTermina, ventas, ganancia,
+                    tiendaActual.getDineroActual(),
+                    this, modal
+            );
+
+            modal.showAndWait();
+
+        } catch (IOException ex) {
+            System.err.println("[MainController] Error cargando ResumenDia.fxml: " + ex.getMessage());
+            ex.printStackTrace();
+            gameLoopService.reanudar();
+        }
+    }
+
+    public void reanudarJuegoTrasResumen() {
+        gameLoopService.reanudar();
+        System.out.println("[MainController] Game loop reanudado tras resumen del día.");
     }
 
     private void actualizarEstadoBotones() {
@@ -328,13 +537,88 @@ public class MainController {
         Alert alerta = new Alert(
                 Alert.AlertType.ERROR,
                 "No se pudo cargar la partida desde la base de datos. \n\n"+
-                   "Causa: "+  causa.getMessage() + "\n\n"+
-                   "Verificar que ~/minimart.db existe y que initDB() se ejecutocorrectamente.\n"+
-                   "La ventana se mostrará con datos por defecto.",
-                   ButtonType.CLOSE
+                        "Causa: "+  causa.getMessage() + "\n\n"+
+                        "Verificar que ~/minimart.db existe y que initDB() se ejecutocorrectamente.\n"+
+                        "La ventana se mostrará con datos por defecto.",
+                ButtonType.CLOSE
         );
         alerta.setTitle("Minimart — Error de carga");
         alerta.setHeaderText("Error al leer la base de datos");
         alerta.showAndWait();
     }
+
+    private void animarClienteLlegando(){
+        if (imgClientePanel.getOpacity()>0) return;
+        if (spriteClienteCaminando==null) return;
+
+        imgClientePanel.setImage(spriteClienteCaminando);
+        imgClientePanel.setOpacity(1.0);
+
+        Timeline temporizador = new Timeline(new KeyFrame(Duration.seconds(2), e->{
+            if (spriteCliienteEstatico!=null){
+                imgClientePanel.setImage(spriteCliienteEstatico);
+            }
+        }));
+        temporizador.setCycleCount(1);
+        temporizador.play();
+    }
+
+    private boolean clienteEnCamino= false;
+    private boolean clienteLlegado=false;
+
+
+
+
+    public void notificarClienteEnCamino() {
+        if (clienteEnCamino || imgClientePanel.getOpacity()>0){
+            System.out.println("Cliente ya en camino, ignorando.");
+            return;
+        }
+        System.out.println("Cliente en camino...");
+        clienteEnCamino= true;
+        clienteLlegado=false;
+
+        imgClientePanel.setImage(spriteClienteCaminando);
+        imgClientePanel.setOpacity(1.0);
+
+
+        Timeline llegada=new Timeline(new KeyFrame(Duration.seconds(2.0), e->{
+            System.out.println("Cliente llego al mostrador");
+            clienteLlegado=true;
+            clienteEnCamino=false;
+
+            if (spriteCliienteEstatico !=null){
+                imgClientePanel.setImage(spriteCliienteEstatico);
+            }
+
+            imgMostradorPanel.setImage(spriteMostrador2);
+
+            Timeline atencion=new Timeline(new KeyFrame(Duration.seconds(1.5), ev->{
+                System.out.println("Cambiando a mostrador 3.");
+                imgMostradorPanel.setImage(spriteMostrador3);
+            }));
+            atencion.setCycleCount(1);
+            atencion.play();
+        }));
+        llegada.setCycleCount(1);
+        llegada.play();
+
+    }
+    public void ocultarCliente(){
+
+        if (clienteEnCamino){
+            System.out.println("Cliente aun en camino, no se oculta");
+            return;
+        }
+
+
+        imgClientePanel.setImage(null);
+        imgClientePanel.setOpacity(0);
+        imgMostradorPanel.setImage(spriteMostrador1);
+        clienteLlegado=false;
+
+    }
+
 }
+
+

@@ -162,3 +162,12 @@
 .separador-cajeros {
     -fx-padding: 0 8 0 8;
 }
+.tarjeta-upgrade .image-view {
+    -fx-scale-x: 1.8;
+    -fx-scale-y: 1.8;
+}
+
+/* Opcional: si quieres que la imagen sobresalga del contenedor */
+.tarjeta-upgrade {
+    -fx-clip-children: false;
+}
