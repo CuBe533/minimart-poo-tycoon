@@ -162,7 +162,7 @@
                 </HBox>
             </VBox>
             <AnchorPane prefWidth="250" prefHeight="140"  style="-fx-background-color: rgba(0,0,0,0.05);">
-                <!-- Mostrador (izquierda, más grande) -->
+
                 <ImageView fx:id="imgMostradorPanel" fitWidth="210" preserveRatio="true" smooth="false"
                            AnchorPane.leftAnchor="10" AnchorPane.bottomAnchor="10"/>
 
@@ -170,7 +170,7 @@
                            AnchorPane.leftAnchor="-30" AnchorPane.bottomAnchor="10" opacity="0.0"/>
 
 
-                <!-- Personaje (derecha, posición fija) -->
+
                 <ImageView fx:id="imgCajeroPanelDerecho" fitWidth="125" preserveRatio="true" smooth="false"
                            AnchorPane.rightAnchor="1" AnchorPane.bottomAnchor="10"/>
 

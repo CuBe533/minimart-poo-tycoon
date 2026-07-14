@@ -184,9 +184,7 @@ public class MainController {
             asignarImagen(imgUpgradeCajero, spriteUpgradeCajero);
             asignarImagen(imgCajeroPanelDerecho, spriteJugador);
 
-            // ─── ASIGNAR CLIENTES FIJOS EN LOS 4 SLOTS (comprador1-4) ────────
-            // Cada slot muestra un cliente diferente en orden.
-            // Si no tienes el cliente4, se mostrará null o el último disponible.
+
             if (spriteClientesEstaticos.length >= 1) asignarImagen(comprador1, spriteClientesEstaticos[0]);
             if (spriteClientesEstaticos.length >= 2) asignarImagen(comprador2, spriteClientesEstaticos[1]);
             if (spriteClientesEstaticos.length >= 3) asignarImagen(comprador3, spriteClientesEstaticos[2]);
@@ -596,21 +594,21 @@ public class MainController {
         Image caminando = cargarSpriteClienteCaminando(indice);
         Image estatico = spriteClientesEstaticos[indice];
 
-        // Posición fija: al lado del mostrador (sin movimiento)
+
         imgClientePanel.setTranslateX(0);
-        imgClientePanel.setLayoutX(OFFSET_X_CLIENTE);  // Posición fija a la izquierda del mostrador
+        imgClientePanel.setLayoutX(OFFSET_X_CLIENTE);
         imgClientePanel.setImage(caminando);
         imgClientePanel.setFitWidth(TAMANO_CLIENTE_CAMINANDO);
         imgClientePanel.setPreserveRatio(true);
         imgClientePanel.setOpacity(1.0);
 
-        // Después de 2 segundos (tiempo simbólico de "llegada"), cambiar a estático
-        Timeline llegada = new Timeline(new KeyFrame(Duration.seconds(2.0), e -> {
+
+        Timeline llegada = new Timeline(new KeyFrame(Duration.seconds(3.0), e -> {
             System.out.println("Cliente llegó al mostrador");
             clienteLlegado = true;
             clienteEnCamino = false;
 
-            // Cambiar a cliente estático con tamaño normal
+
             if (estatico != null) {
                 imgClientePanel.setImage(estatico);
                 imgClientePanel.setFitWidth(TAMANO_CLIENTE_ESTATICO);
@@ -618,7 +616,6 @@ public class MainController {
             }
 
             if (esPrimerCliente) {
-                // Iniciar alternancia del mostrador
                 iniciarAlternanciaMostrador();
             }
         }));
