@@ -90,7 +90,7 @@
     </center>
 
     <right>
-        <VBox styleClass="panel-derecho" minWidth="200" maxWidth="200" spacing="8">
+        <VBox styleClass="panel-derecho" minWidth="270" maxWidth="270" spacing="8">
             <padding><Insets top="16" right="12" bottom="16" left="12"/></padding>
 
             <Label text="UPGRADES" styleClass="titulo-panel"/>
@@ -161,9 +161,9 @@
                     <Label fx:id="labelDia" text="DÍA 1" styleClass="label-stat-nombre"/>
                 </HBox>
             </VBox>
-            <AnchorPane prefWidth="220" prefHeight="120" style="-fx-background-color: rgba(0,0,0,0.05);">
+            <AnchorPane prefWidth="250" prefHeight="140"  style="-fx-background-color: rgba(0,0,0,0.05);">
                 <!-- Mostrador (izquierda, más grande) -->
-                <ImageView fx:id="imgMostradorPanel" fitWidth="160" preserveRatio="true" smooth="false"
+                <ImageView fx:id="imgMostradorPanel" fitWidth="210" preserveRatio="true" smooth="false"
                            AnchorPane.leftAnchor="10" AnchorPane.bottomAnchor="10"/>
 
                 <ImageView fx:id="imgClientePanel" fitWidth="100" preserveRatio="true" smooth="false"
@@ -171,7 +171,7 @@
 
 
                 <!-- Personaje (derecha, posición fija) -->
-                <ImageView fx:id="imgCajeroPanelDerecho" fitWidth="90" preserveRatio="true" smooth="false"
+                <ImageView fx:id="imgCajeroPanelDerecho" fitWidth="125" preserveRatio="true" smooth="false"
                            AnchorPane.rightAnchor="1" AnchorPane.bottomAnchor="10"/>
 
 

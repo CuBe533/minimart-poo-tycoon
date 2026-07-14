@@ -100,7 +100,7 @@ public class ConexionBD {
 
             stmt.execute("""
                 INSERT INTO cajeros (tienda_id, nivel_mejora, tiempo_despacho, activo)
-                SELECT 1, 1, 5, 1
+                SELECT 1, 1, 3, 1
                 WHERE NOT EXISTS (
                     SELECT 1 FROM cajeros WHERE tienda_id = 1
                 )

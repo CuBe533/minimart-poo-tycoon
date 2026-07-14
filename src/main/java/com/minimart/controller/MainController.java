@@ -26,10 +26,7 @@ import com.minimart.model.Tienda;
 import javafx.util.Duration;
 
 import java.io.IOException;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class MainController {
@@ -75,7 +72,6 @@ public class MainController {
     @FXML private ImageView    comprador3;
     @FXML private ImageView    comprador4;
 
-    // ─── IMAGEN DEL CAJERO EN EL PANEL DERECHO (ZONA GRIS) ───
     @FXML private ImageView    imgCajeroPanelDerecho;
 
     @FXML private Button       btnUpgrade1;
@@ -108,7 +104,8 @@ public class MainController {
     private static final double UMBRAL_STOCK_CRITICO = 0.3;
     private static final String ESTILO_STOCK_CRITICO = "-fx-accent: #E24B4A;";
 
-    // ─── SPRITES ──────────────────────────────────────────────────────────────
+    private static final Random RANDOM = new Random();
+
     private final Map<String, Image> spritesProducto = Map.of(
             "Snacks",    cargarSprite("producto_snacks.gif"),
             "Bebidas",   cargarSprite("producto_bebidas.gif"),
@@ -119,16 +116,40 @@ public class MainController {
 
     private final Image spriteCajero = cargarSprite("cajero.gif");
     private final Image spriteJugador = cargarSprite("cliente.gif");
-    private final Image spriteCliente = cargarSprite("ClienteEstatico1.gif");
     private final Image spriteUpgradeEstanteria  = cargarSprite("upgrade_estanteria.gif");
     private final Image spriteUpgradeReabastecer = cargarSprite("upgrade_reabastecer.gif");
     private final Image spriteUpgradeCajero      = cargarSprite("MejoraCajero.gif");
 
-    private final Image spriteClienteCaminando= cargarSprite("clienteCaminando1.gif");
-    private final Image spriteCliienteEstatico= cargarSprite("ClienteEstatico1.gif");
+
+    private final Image[] spriteClientesEstaticos = {
+            cargarSprite("ClienteEstatico1.gif"),
+            cargarSprite("ClienteEstatico2.gif"),
+            cargarSprite("ClienteEstatico3.gif"),
+            cargarSprite("ClienteEstatico4.gif")   // ← cuando lo tengas
+    };
+
+    private static final String[] NOMBRES_CLIENTES_CAMINANDO = {
+            "clienteCaminando1.gif",
+            "clienteCaminando2.gif",
+            "clienteCaminando3.gif",
+            "clienteCaminando4.gif"   // ← cuando lo tengas
+    };
+
+    private static Image cargarSpriteClienteCaminando(int indice) {
+        if (indice < 0 || indice >= NOMBRES_CLIENTES_CAMINANDO.length) return null;
+        return cargarSprite(NOMBRES_CLIENTES_CAMINANDO[indice]);
+    }
+
     private final Image spriteMostrador1 = cargarSprite("Mostrador.gif");
     private final Image spriteMostrador2 = cargarSprite("Mostrador (2).gif");
     private final Image spriteMostrador3 = cargarSprite("Mostrador (3).gif");
+
+    private static final int TAMANO_CLIENTE_CAMINANDO=170;
+    private static final int TAMANO_CLIENTE_ESTATICO=135;
+    private static final double OFFSET_X_CLIENTE = -90;
+
+    private Timeline timelineAlternanciaMostrador;
+
 
 
     private static Image cargarSprite(String nombreArchivo) {
@@ -163,13 +184,15 @@ public class MainController {
             asignarImagen(imgUpgradeCajero, spriteUpgradeCajero);
             asignarImagen(imgCajeroPanelDerecho, spriteJugador);
 
-            asignarImagen(comprador1, spriteCliente);
-            asignarImagen(comprador2, spriteCliente);
-            asignarImagen(comprador3, spriteCliente);
-            asignarImagen(comprador4, spriteCliente);
+            // ─── ASIGNAR CLIENTES FIJOS EN LOS 4 SLOTS (comprador1-4) ────────
+            // Cada slot muestra un cliente diferente en orden.
+            // Si no tienes el cliente4, se mostrará null o el último disponible.
+            if (spriteClientesEstaticos.length >= 1) asignarImagen(comprador1, spriteClientesEstaticos[0]);
+            if (spriteClientesEstaticos.length >= 2) asignarImagen(comprador2, spriteClientesEstaticos[1]);
+            if (spriteClientesEstaticos.length >= 3) asignarImagen(comprador3, spriteClientesEstaticos[2]);
+            if (spriteClientesEstaticos.length >= 4) asignarImagen(comprador4, spriteClientesEstaticos[3]);
 
-            asignarImagen(imgMostradorPanel, cargarSprite("Mostrador.gif"));
-
+            asignarImagen(imgMostradorPanel, spriteMostrador1);
 
             System.out.println("[MainController] Inicialización completa.");
         }
@@ -394,7 +417,6 @@ public class MainController {
             new CajeroDAO().update(cajero);
             descontarDinero(COSTO_CAJERO);
 
-            // Buscar primer slot inactivo y encenderlo
             VBox[] slots = { slotCajero1, slotCajero2, slotCajero3 };
             boolean slotIluminado = false;
             for (int i = 0; i < slots.length; i++) {
@@ -411,7 +433,6 @@ public class MainController {
 
             System.out.println("[MainController] Cajero contratado: " + cajero);
         } else {
-            // Mejorar cajero existente (código actual sin cambios)
             Cajero peor = tiendaActual.getCajeros().stream()
                     .filter(Cajero::isActivo)
                     .min((a, b) -> Integer.compare(a.getNivelMejora(), b.getNivelMejora()))
@@ -547,78 +568,108 @@ public class MainController {
         alerta.showAndWait();
     }
 
-    private void animarClienteLlegando(){
-        if (imgClientePanel.getOpacity()>0) return;
-        if (spriteClienteCaminando==null) return;
-
-        imgClientePanel.setImage(spriteClienteCaminando);
-        imgClientePanel.setOpacity(1.0);
-
-        Timeline temporizador = new Timeline(new KeyFrame(Duration.seconds(2), e->{
-            if (spriteCliienteEstatico!=null){
-                imgClientePanel.setImage(spriteCliienteEstatico);
-            }
-        }));
-        temporizador.setCycleCount(1);
-        temporizador.play();
-    }
-
-    private boolean clienteEnCamino= false;
-    private boolean clienteLlegado=false;
-
-
+    private boolean clienteEnCamino = false;
+    private boolean clienteLlegado = false;
 
 
     public void notificarClienteEnCamino() {
-        if (clienteEnCamino || imgClientePanel.getOpacity()>0){
+        if (clienteEnCamino || imgClientePanel.getOpacity() > 0) {
             System.out.println("Cliente ya en camino, ignorando.");
             return;
         }
         System.out.println("Cliente en camino...");
-        clienteEnCamino= true;
-        clienteLlegado=false;
+        mostrarClienteCaminando(true);
+    }
 
-        imgClientePanel.setImage(spriteClienteCaminando);
+
+    public void notificarSiguienteCliente() {
+        System.out.println("Siguiente cliente de la cola...");
+        mostrarClienteCaminando(false);
+    }
+
+    private void mostrarClienteCaminando(boolean esPrimerCliente) {
+        clienteEnCamino = true;
+        clienteLlegado = false;
+
+
+        int indice = RANDOM.nextInt(spriteClientesEstaticos.length);
+        Image caminando = cargarSpriteClienteCaminando(indice);
+        Image estatico = spriteClientesEstaticos[indice];
+
+        // Posición fija: al lado del mostrador (sin movimiento)
+        imgClientePanel.setTranslateX(0);
+        imgClientePanel.setLayoutX(OFFSET_X_CLIENTE);  // Posición fija a la izquierda del mostrador
+        imgClientePanel.setImage(caminando);
+        imgClientePanel.setFitWidth(TAMANO_CLIENTE_CAMINANDO);
+        imgClientePanel.setPreserveRatio(true);
         imgClientePanel.setOpacity(1.0);
 
+        // Después de 2 segundos (tiempo simbólico de "llegada"), cambiar a estático
+        Timeline llegada = new Timeline(new KeyFrame(Duration.seconds(2.0), e -> {
+            System.out.println("Cliente llegó al mostrador");
+            clienteLlegado = true;
+            clienteEnCamino = false;
 
-        Timeline llegada=new Timeline(new KeyFrame(Duration.seconds(2.0), e->{
-            System.out.println("Cliente llego al mostrador");
-            clienteLlegado=true;
-            clienteEnCamino=false;
-
-            if (spriteCliienteEstatico !=null){
-                imgClientePanel.setImage(spriteCliienteEstatico);
+            // Cambiar a cliente estático con tamaño normal
+            if (estatico != null) {
+                imgClientePanel.setImage(estatico);
+                imgClientePanel.setFitWidth(TAMANO_CLIENTE_ESTATICO);
+                imgClientePanel.setPreserveRatio(true);
             }
 
-            imgMostradorPanel.setImage(spriteMostrador2);
-
-            Timeline atencion=new Timeline(new KeyFrame(Duration.seconds(1.5), ev->{
-                System.out.println("Cambiando a mostrador 3.");
-                imgMostradorPanel.setImage(spriteMostrador3);
-            }));
-            atencion.setCycleCount(1);
-            atencion.play();
+            if (esPrimerCliente) {
+                // Iniciar alternancia del mostrador
+                iniciarAlternanciaMostrador();
+            }
         }));
         llegada.setCycleCount(1);
         llegada.play();
+    }
+
+    private void iniciarAlternanciaMostrador(){
+        detenerAlternanciaMostrador();
+
+        imgMostradorPanel.setImage(spriteMostrador2);
+
+        timelineAlternanciaMostrador = new Timeline(
+                new KeyFrame(Duration.seconds(2.5), e->{
+                    if (imgMostradorPanel.getImage()== spriteMostrador2){
+                        imgMostradorPanel.setImage(spriteMostrador3);
+                    }else{
+                        imgMostradorPanel.setImage(spriteMostrador2);
+                    }
+                })
+        );
+        timelineAlternanciaMostrador.setCycleCount(Timeline.INDEFINITE);
+        timelineAlternanciaMostrador.play();
+
 
     }
-    public void ocultarCliente(){
+    private void detenerAlternanciaMostrador(){
+        if (timelineAlternanciaMostrador !=null){
+            timelineAlternanciaMostrador.stop();
+            timelineAlternanciaMostrador=null;
+        }
+    }
 
-        if (clienteEnCamino){
-            System.out.println("Cliente aun en camino, no se oculta");
+
+
+    public void ocultarCliente() {
+        if (clienteEnCamino) {
+            System.out.println("Cliente aún en camino, no se oculta");
             return;
         }
 
+        detenerAlternanciaMostrador();
+
+        imgClientePanel.setTranslateX(0);
+        imgClientePanel.setLayoutX(-80);
 
         imgClientePanel.setImage(null);
         imgClientePanel.setOpacity(0);
+        imgClientePanel.setFitWidth(TAMANO_CLIENTE_ESTATICO);
+
         imgMostradorPanel.setImage(spriteMostrador1);
-        clienteLlegado=false;
-
+        clienteLlegado = false;
     }
-
 }
-
-

@@ -22,7 +22,7 @@ public class GameLoopService {
     private final AnimacionService animacionService = new AnimacionService(); // Sprint 7
     private       Timeline         timeline;
 
-    private static final double PROBABILIDAD_SPAWN = 0.30;
+    private static final double PROBABILIDAD_SPAWN = 0.50;
     private static final Random RNG = new Random();
 
     private int    ventasDelDia    = 0;
@@ -151,6 +151,7 @@ public class GameLoopService {
 
                 if (!c.getColaClientes().isEmpty()) {
                     c.setSegundosRestantes(c.getTiempoDespacho());
+                    controller.notificarClienteEnCamino();
                 }
                 else {
                     c.setSegundosRestantes(0);

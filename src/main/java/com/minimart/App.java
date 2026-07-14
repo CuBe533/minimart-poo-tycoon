@@ -38,14 +38,14 @@ public class App extends Application {
         );
         Parent raiz = loader.load();
 
-        Scene escena = new Scene(raiz, 1024, 768);
+        Scene escena = new Scene(raiz, 1080, 770);
         escena.getStylesheets().add(
                 getClass().getResource("/com/minimart/styles.css").toExternalForm()
         );
 
         stage.setTitle("MiniMart POO Tycoon");
         stage.setScene(escena);
-        stage.setResizable(false);
+        stage.setResizable(true);
         stage.show();
     }
 
