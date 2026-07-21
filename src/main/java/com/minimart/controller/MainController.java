@@ -1,9 +1,6 @@
 package com.minimart.controller;
 
-import javafx.animation.Interpolator;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
-import javafx.animation.TranslateTransition;
+import javafx.animation.*;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -24,10 +21,13 @@ import com.minimart.model.Cajero;
 import com.minimart.model.Estanteria;
 import com.minimart.model.Tienda;
 import javafx.util.Duration;
+import javafx.application.Platform;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import javafx.scene.layout.Region;
 
 public class MainController {
 
@@ -102,7 +102,6 @@ public class MainController {
     private static final double COSTO_CAJERO      = 200.0;
 
     private static final double UMBRAL_STOCK_CRITICO = 0.3;
-    private static final String ESTILO_STOCK_CRITICO = "-fx-accent: #E24B4A;";
 
     private static final Random RANDOM = new Random();
 
@@ -149,6 +148,8 @@ public class MainController {
     private static final double OFFSET_X_CLIENTE = -90;
 
     private Timeline timelineAlternanciaMostrador;
+
+
 
 
 
@@ -273,7 +274,6 @@ public class MainController {
 
     public void actualizarVistas(){
         ProgressBar[] barrasAtencion = {atenderBar1, atenderBar2, atenderBar3};
-
         for (int i = 0; i<tiendaActual.getCajeros().size() && i < barrasAtencion.length; i++) {
             Cajero c = tiendaActual.getCajeros().get(i);
             if (c.isActivo() && c.getTamañoCola() > 0) {
@@ -287,10 +287,12 @@ public class MainController {
 
         ProgressBar[] barrasStock = { stockBar1, stockBar2, stockBar3, stockBar4, stockBar5 };
         for (ProgressBar barra : barrasStock) {
-            if (barra.getProgress() >= 0.0 && barra.getProgress() < UMBRAL_STOCK_CRITICO) {
-                barra.setStyle(ESTILO_STOCK_CRITICO);
-            } else {
-                barra.setStyle(null);
+            boolean critico = barra.getProgress() >= 0.0 && barra.getProgress() < UMBRAL_STOCK_CRITICO;
+            Region bar = (Region) barra.lookup(".bar");
+            if (bar != null) {
+                bar.setStyle(critico
+                        ? "-fx-background-color: #E24B4A;"
+                        : "-fx-background-color: #1D9E75;");
             }
         }
     }
@@ -456,27 +458,65 @@ public class MainController {
     }
 
     private void handleAvanzarDia() {
+        if (Sesion.esInvitado()) {
+            mostrarInfo("Modo invitado",
+                    "El modo invitado solo puede jugar el Día 1.\n" +
+                            "Regístrate para seguir jugando los siguientes días.");
+            return;
+        }
+
         gameLoopService.pausar();
+        gameLoopService.limpiarClienteEnCurso();
+        reiniciarCicloVisualCliente();
 
         int diaQueTermina = tiendaActual.getDiaActual();
         int ventas = gameLoopService.getVentasDelDia();
         double ganancia = gameLoopService.getDineroGanadoDia();
 
-        try {
-            new JuegoDAO().guardarEstadoCompleto(tiendaActual);
-            tiendaActual.setDiaActual(diaQueTermina + 1);
-            gameLoopService.reiniciarContadoresDia();
-            mostrarResumenDia(diaQueTermina, ventas, ganancia);
+        mostrarAvisoCambioDia(diaQueTermina +1, ()->{
+            try {
+                reiniciarCicloVisualCliente();
+                new JuegoDAO().guardarEstadoCompleto(tiendaActual);
+                tiendaActual.setDiaActual(diaQueTermina + 1);
+                gameLoopService.reiniciarContadoresDia();
+                mostrarResumenDia(diaQueTermina, ventas, ganancia);
 
-        } catch (RuntimeException ex) {
-            System.err.println("[MainController] Error guardando estado del día: " + ex.getMessage());
-            ex.printStackTrace();
-            mostrarInfo("Error de guardado",
-                    "No se pudo guardar el progreso del día en la base de datos.\n" +
-                            "El juego continuará, pero verifica tu conexión a la BD.");
-            gameLoopService.reanudar();
+            } catch (RuntimeException ex) {
+                System.err.println("[MainController] Error guardando estado del día: " + ex.getMessage());
+                ex.printStackTrace();
+                mostrarInfo("Error de guardado",
+                        "No se pudo guardar el progreso del día en la base de datos.\n" +
+                                "El juego continuará, pero verifica tu conexión a la BD.");
+                gameLoopService.reanudar();
+            }
+
+        });
+    }
+    private void reabastecerTodoAlIniciarDia(){
+        for (Estanteria e: tiendaActual.getEstanterias()){
+            e.setStockActual(e.getStockMaximo());
         }
     }
+
+    private void mostrarAvisoCambioDia(int diaNuevo, Runnable alTerminar){
+        Alert aviso = new Alert(Alert.AlertType.INFORMATION);
+        aviso.setTitle("MiniMart");
+        aviso.setHeaderText(null);
+        aviso.setContentText("Cambiando al dia "+ diaNuevo +"...");
+        aviso.initModality(Modality.NONE);
+        aviso.show();
+
+        PauseTransition espera = new PauseTransition(Duration.seconds(1.5));
+        espera.setOnFinished(e->{
+            aviso.close();
+            Platform.runLater(()->{
+                if (alTerminar !=null) alTerminar.run();
+            });
+        });
+        espera.play();
+
+    }
+
 
     private void mostrarResumenDia(int diaQueTermina, int ventas, double ganancia) {
         try {
@@ -568,6 +608,7 @@ public class MainController {
 
     private boolean clienteEnCamino = false;
     private boolean clienteLlegado = false;
+    private Timeline llegadaClienteTimeline;
 
 
     public void notificarClienteEnCamino() {
@@ -603,7 +644,7 @@ public class MainController {
         imgClientePanel.setOpacity(1.0);
 
 
-        Timeline llegada = new Timeline(new KeyFrame(Duration.seconds(3.0), e -> {
+        Timeline llegada = new Timeline(new KeyFrame(Duration.seconds(2.0), e -> {
             System.out.println("Cliente llegó al mostrador");
             clienteLlegado = true;
             clienteEnCamino = false;
@@ -620,6 +661,7 @@ public class MainController {
             }
         }));
         llegada.setCycleCount(1);
+        llegadaClienteTimeline=llegada;
         llegada.play();
     }
 
@@ -669,4 +711,32 @@ public class MainController {
         imgMostradorPanel.setImage(spriteMostrador1);
         clienteLlegado = false;
     }
+
+    public void reiniciarCicloVisualCliente(){
+        if(llegadaClienteTimeline!=null){
+           llegadaClienteTimeline.stop();
+           llegadaClienteTimeline=null;
+        }
+        detenerAlternanciaMostrador();
+
+        clienteEnCamino=false;
+        clienteLlegado=false;
+
+        imgClientePanel.setTranslateX(0);
+        imgClientePanel.setLayoutX(OFFSET_X_CLIENTE);
+        imgClientePanel.setImage(null);
+        imgClientePanel.setOpacity(0);
+        imgClientePanel.setFitWidth(TAMANO_CLIENTE_ESTATICO);
+
+        imgMostradorPanel.setImage(spriteMostrador1);
+
+        ProgressBar[] barrasAtencion= {atenderBar1, atenderBar2, atenderBar3};
+        for (ProgressBar barra: barrasAtencion){
+            barra.setProgress(0.0);
+        }
+
+
+    }
+
+
 }

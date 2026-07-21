@@ -22,7 +22,7 @@
                 <!-- Slot estantería 1 -->
                 <VBox fx:id="slotEstanteria1" styleClass="slot-estanteria" alignment="CENTER" spacing="6" prefWidth="126" maxWidth="126">
                     <ImageView fx:id="imgEstanteria1" fitWidth="170" preserveRatio="true" smooth="false"/>
-                    <ProgressBar fx:id="stockBar1" prefWidth="110" progress="1.0" styleClass="barra-stock"/>
+                    <ProgressBar fx:id="stockBar1" prefWidth="110"  progress="1.0" styleClass="barra-stock"/>
                     <Label fx:id="labelTipo1" text="—" styleClass="label-tipo-producto"/>
                 </VBox>
 

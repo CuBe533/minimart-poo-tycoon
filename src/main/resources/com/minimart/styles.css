@@ -69,9 +69,9 @@
     -fx-background-radius: 4;
 }
 
-/* Stock crítico (< 30%): se aplica en Sprint 7 con                */
-/* progressBar.setStyle("-fx-accent: #E24B4A;")                    */
-
+.barra-stock.stock-critico .bar {
+    -fx-background-color: #E24B4A;   /* rojo — stock crítico (<30%) */
+}
 /* ── Barras de progreso — atención ────────────────────────────── */
 .barra-atencion .track {
     -fx-background-color: rgba(0, 0, 0, 0.2);
@@ -85,7 +85,7 @@
 
 /* ── Etiquetas de tipo de producto ────────────────────────────── */
 .label-tipo-producto {
-    -fx-font-size: 11px;
+    -fx-font-size: 16px;
     -fx-font-family: "Monospaced", monospace;
     -fx-text-fill: #333333;
     -fx-font-weight: bold;

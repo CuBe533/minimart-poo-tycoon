@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.VBox?>
+<?import java.lang.String?>
+
+<VBox spacing="12" alignment="CENTER" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.minimart.controller.RegistroController"
+      style="-fx-padding: 30; -fx-background-color: #222;">
+    <Label text="Registro de usuario" style="-fx-font-size: 20px; -fx-text-fill: white;"/>
+    <TextField fx:id="txtUsuario" promptText="Usuario" prefWidth="220"/>
+    <PasswordField fx:id="txtPassword" promptText="Contraseña" prefWidth="220"/>
+    <PasswordField fx:id="txtPassword2" promptText="Confirmar contraseña" prefWidth="220"/>
+    <ComboBox fx:id="comboRol" promptText="Selecciona rol" prefWidth="220">
+        <items>
+            <FXCollections fx:factory="observableArrayList">
+                <String fx:value="administrador" />
+                <String fx:value="invitado" />
+            </FXCollections>
+        </items>
+    </ComboBox>
+    <Button text="Registrarse" fx:id="btnRegistrar" maxWidth="Infinity"/>
+    <Button text="Volver al login" fx:id="btnVolver" maxWidth="Infinity"/>
+    <Label fx:id="labelError" style="-fx-text-fill: #E24B4A;"/>
+</VBox>

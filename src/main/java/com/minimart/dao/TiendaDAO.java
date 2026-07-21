@@ -97,10 +97,10 @@ public class TiendaDAO implements DAO<Tienda> {
 
     public Tienda cargarPartidaCompleta(int tiendaId) {
         Tienda tienda = findById(tiendaId).orElseThrow(() ->
-            new RuntimeException(
-                "[TiendaDAO.cargarPartidaCompleta] No existe tienda con id=" + tiendaId +
-                ". Verificar que initDB() se ejecutó correctamente."
-            )
+                new RuntimeException(
+                        "[TiendaDAO.cargarPartidaCompleta] No existe tienda con id=" + tiendaId +
+                                ". Verificar que initDB() se ejecutó correctamente."
+                )
         );
         tienda.setEstanterias(estanteriaDAO.findByTiendaId(tiendaId));
         tienda.setCajeros(cajeroDAO.findByTiendaId(tiendaId));
@@ -109,10 +109,10 @@ public class TiendaDAO implements DAO<Tienda> {
 
     private Tienda mapearFila(ResultSet rs) throws SQLException {
         return new Tienda(
-            rs.getInt("id"),
-            rs.getString("nombre_tienda"),
-            rs.getDouble("dinero_actual"),
-            rs.getInt("dia_actual")
+                rs.getInt("id"),
+                rs.getString("nombre_tienda"),
+                rs.getDouble("dinero_actual"),
+                rs.getInt("dia_actual")
         );
     }
 }

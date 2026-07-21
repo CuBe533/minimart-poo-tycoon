@@ -31,14 +31,13 @@ public class App extends Application {
 
         iniciarMusicaFondo();
 
-        verificarPartidaExistente();
 
         FXMLLoader loader = new FXMLLoader(
-                getClass().getResource("/com/minimart/MainWindow.fxml")
+                getClass().getResource("/com/minimart/Login.fxml")
         );
         Parent raiz = loader.load();
 
-        Scene escena = new Scene(raiz, 1080, 770);
+        Scene escena = new Scene(raiz, 400, 400);
         escena.getStylesheets().add(
                 getClass().getResource("/com/minimart/styles.css").toExternalForm()
         );
@@ -55,12 +54,18 @@ public class App extends Application {
         ConexionBD.getInstance().cerrar();
     }
 
-    private void verificarPartidaExistente() {
+    public static void verificarPartidaExistente() {
         try {
             TiendaDAO dao = new TiendaDAO();
             Tienda tienda = dao.cargarPartidaCompleta(1);
 
-            if (tienda.getDiaActual() > 1) {
+            boolean hayProgreso = tienda.getDiaActual() > 1
+                    || tienda.getDineroActual() != 500.0
+                    || !tienda.getEstanterias().isEmpty()
+                    || tienda.getCajeros().stream().anyMatch(c -> c.isActivo() && c.getNivelMejora() > 1)
+                    || tienda.getCajeros().stream().filter(c -> c.isActivo()).count() > 1;
+
+            if (hayProgreso) {
                 Alert alerta = new Alert(
                         Alert.AlertType.CONFIRMATION,
                         "Tienes una partida guardada en el DÍA " + tienda.getDiaActual() +
@@ -82,9 +87,8 @@ public class App extends Application {
                     System.out.println("[App] Continuando partida existente — DÍA " + tienda.getDiaActual());
                 }
             } else {
-
                 new JuegoDAO().resetearPartida();
-                System.out.println("[App] Día 1 sin avanzar — se reinicia el estado.");
+                System.out.println("[App] Sin progreso previo — se inicia estado limpio.");
             }
         } catch (RuntimeException ex) {
             System.err.println("[App] No se pudo verificar partida existente: " + ex.getMessage());

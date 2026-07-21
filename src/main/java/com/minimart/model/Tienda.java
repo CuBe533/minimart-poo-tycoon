@@ -51,7 +51,7 @@ public class Tienda {
     @Override
     public String toString() {
         return String.format("Tienda{id=%d, nombre='%s', dinero=%.2f, dia=%d, estanterias=%d, cajeros=%d}",
-            id, getNombreTienda(), getDineroActual(), getDiaActual(),
-            estanterias.size(), cajeros.size());
+                id, getNombreTienda(), getDineroActual(), getDiaActual(),
+                estanterias.size(), cajeros.size());
     }
 }

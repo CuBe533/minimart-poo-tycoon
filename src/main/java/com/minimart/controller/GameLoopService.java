@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 public class GameLoopService {
     private final Tienda           tienda;
     private final MainController   controller;
-    private final AnimacionService animacionService = new AnimacionService(); // Sprint 7
+    private final AnimacionService animacionService = new AnimacionService();
     private       Timeline         timeline;
 
     private static final double PROBABILIDAD_SPAWN = 0.50;
@@ -33,8 +33,6 @@ public class GameLoopService {
 
     private double dineroMaximoAlcanzado;
     private boolean juegoTerminado = false;
-
-
 
     public GameLoopService(Tienda tienda, MainController controller){
         this.tienda = tienda;
@@ -73,7 +71,7 @@ public class GameLoopService {
         actualizarReputacion();
         controller.actualizarVistas();
 
-        if (tienda.getDineroActual() < 0 && !juegoTerminado) {
+        if ((tienda.getDineroActual() < 0 || reputacion <= 0) && !juegoTerminado) {
             juegoTerminado = true;
             pausar();
             controller.mostrarGameOver(tienda.getDiaActual(), dineroMaximoAlcanzado);
@@ -145,13 +143,13 @@ public class GameLoopService {
                     animacionService.animarGanancia(controller.getLabelDinero());
 
                     if (c.getTiempoDespacho() <= UMBRAL_DESPACHO_RAPIDO) {
-                        reputacion = Math.min(100.0, reputacion + 1.0);
+                        reputacion = Math.min(100.0, reputacion + 2.0);
                     }
                 }
 
                 if (!c.getColaClientes().isEmpty()) {
                     c.setSegundosRestantes(c.getTiempoDespacho());
-                    controller.notificarClienteEnCamino();
+                    controller.notificarSiguienteCliente();
                 }
                 else {
                     c.setSegundosRestantes(0);
@@ -175,7 +173,6 @@ public class GameLoopService {
         controller.actualizarLabelReputacion(reputacion);
     }
 
-
     public int getVentasDelDia() {
         return ventasDelDia;
     }
@@ -184,12 +181,17 @@ public class GameLoopService {
         return dineroGanadoDia;
     }
 
-
     public void reiniciarContadoresDia() {
         ventasDelDia = 0;
         dineroGanadoDia = 0.0;
     }
 
+    public void limpiarClienteEnCurso(){
+        for(Cajero c: tienda.getCajeros()){
+            c.getColaClientes().clear();
+            c.setSegundosRestantes(0);
+        }
+    }
 
     public double getReputacion() {
         return reputacion;

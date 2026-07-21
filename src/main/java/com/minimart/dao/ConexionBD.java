@@ -41,7 +41,7 @@ public class ConexionBD {
             System.out.println("[ConexionBD] Conectado a: " + DB_PATH);
         } catch (SQLException e) {
             throw new RuntimeException(
-                "[ConexionBD] No se pudo conectar a la BD SQLite: " + e.getMessage(), e
+                    "[ConexionBD] No se pudo conectar a la BD SQLite: " + e.getMessage(), e
             );
         }
     }
@@ -124,11 +124,21 @@ public class ConexionBD {
                 )
             """);
 
+            stmt.execute("""
+                CREATE TABLE IF NOT EXISTS usuarios (
+                    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+                    usuario   TEXT NOT NULL UNIQUE,
+                    password  TEXT NOT NULL,
+                    rol       TEXT NOT NULL CHECK(rol IN ('invitado','usuario','admin'))
+                )
+            """);
+
+
             System.out.println("[ConexionBD] Esquema inicializado correctamente.");
 
         } catch (SQLException e) {
             throw new RuntimeException(
-                "[ConexionBD] Error inicializando el esquema: " + e.getMessage(), e
+                    "[ConexionBD] Error inicializando el esquema: " + e.getMessage(), e
             );
         }
     }
