@@ -2,6 +2,7 @@ module com.minimart {
     requires javafx.controls;
     requires javafx.fxml;
     requires java.sql;
+    requires javafx.media;
 
     opens com.minimart to javafx.fxml;
 
@@ -11,6 +12,8 @@ module com.minimart {
 
     exports com.minimart.controller;
     exports com.minimart.view;
+    exports com.minimart.admin;
     opens   com.minimart.controller to javafx.fxml;
     opens   com.minimart.view       to javafx.fxml;
+    opens   com.minimart.admin      to javafx.fxml;
 }

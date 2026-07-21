@@ -1,0 +1,139 @@
+/* ═══════════════════════════════════════════════════════════════
+   MiniMart POO Tycoon — Estilos del Panel de Administración
+   Colores consistentes con styles.css principal.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Raíz del panel admin ────────────────────────────────────── */
+.admin-root {
+    -fx-background-color: #2B2B2B;
+}
+
+/* ── Encabezado ──────────────────────────────────────────────── */
+.admin-header {
+    -fx-background-color: #1A1A1A;
+    -fx-border-color: #FFD700;
+    -fx-border-width: 0 0 2 0;
+}
+
+.admin-titulo {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #FFD700;
+    -fx-font-family: "Monospaced", monospace;
+}
+
+.admin-subtitulo {
+    -fx-font-size: 12px;
+    -fx-text-fill: #AAAAAA;
+    -fx-font-family: "Monospaced", monospace;
+}
+
+/* ── Título de sección ───────────────────────────────────────── */
+.admin-seccion-titulo {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #FFD700;
+    -fx-font-family: "Monospaced", monospace;
+    -fx-padding: 4 0 0 0;
+}
+
+/* ── Tabla de partidas ───────────────────────────────────────── */
+.admin-table {
+    -fx-background-color: #1E1E1E;
+    -fx-border-color: #555555;
+    -fx-border-width: 1;
+}
+
+.admin-table .column-header-background {
+    -fx-background-color: #333333;
+}
+
+.admin-table .column-header-background .filler {
+    -fx-background-color: #333333;
+}
+
+.admin-table .column-header {
+    -fx-background-color: #333333;
+    -fx-border-color: #555555;
+}
+
+.admin-table .column-header .label {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #FFD700;
+    -fx-font-family: "Monospaced", monospace;
+}
+
+.admin-table .table-row-cell {
+    -fx-background-color: #1E1E1E;
+    -fx-border-color: transparent;
+}
+
+.admin-table .table-row-cell:odd {
+    -fx-background-color: #252525;
+}
+
+.admin-table .table-row-cell:selected {
+    -fx-background-color: #3A5F8C;
+}
+
+.admin-table .table-row-cell:selected .text {
+    -fx-fill: #FFFFFF;
+}
+
+.admin-table .table-cell {
+    -fx-text-fill: #DDDDDD;
+    -fx-font-size: 12px;
+    -fx-font-family: "Monospaced", monospace;
+    -fx-padding: 6 8 6 8;
+}
+
+.admin-table .table-row-cell:empty {
+    -fx-background-color: #1E1E1E;
+}
+
+.admin-table .table-row-cell:empty .table-cell {
+    -fx-border-color: transparent;
+}
+
+.admin-placeholder {
+    -fx-text-fill: #777777;
+    -fx-font-size: 13px;
+    -fx-font-style: italic;
+}
+
+/* ── Botones de acción ───────────────────────────────────────── */
+.admin-btn {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Monospaced", monospace;
+    -fx-padding: 8 20 8 20;
+    -fx-background-radius: 4;
+    -fx-cursor: hand;
+}
+
+.admin-btn-warning {
+    -fx-background-color: #E2A01A;
+    -fx-text-fill: #1A1A1A;
+}
+
+.admin-btn-warning:hover {
+    -fx-background-color: #F0B830;
+}
+
+.admin-btn-warning:pressed {
+    -fx-background-color: #C08A10;
+}
+
+.admin-btn-danger {
+    -fx-background-color: #E24B4A;
+    -fx-text-fill: #FFFFFF;
+}
+
+.admin-btn-danger:hover {
+    -fx-background-color: #F06060;
+}
+
+.admin-btn-danger:pressed {
+    -fx-background-color: #C03030;
+}

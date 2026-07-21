@@ -1,5 +1,6 @@
 package com.minimart;
 
+import com.minimart.admin.AdminController;
 import com.minimart.dao.ConexionBD;
 import com.minimart.dao.JuegoDAO;
 import com.minimart.dao.TiendaDAO;
@@ -125,5 +126,9 @@ public class App extends Application {
 
     public static void main(String[] args) {
         launch(args);
+    }
+
+    public static void abrirPanelAdmin(Stage owner) {
+        AdminController.abrirPanel(owner);
     }
 }

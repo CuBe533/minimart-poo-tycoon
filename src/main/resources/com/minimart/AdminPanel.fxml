@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane
+        xmlns="http://javafx.openjfx.com/javafx/21"
+        xmlns:fx="http://javafx.com/fxml/1"
+        fx:controller="com.minimart.admin.AdminController"
+        prefWidth="850"
+        prefHeight="520"
+        styleClass="admin-root">
+
+    <top>
+        <VBox styleClass="admin-header" spacing="4">
+            <padding><Insets top="16" right="20" bottom="12" left="20"/></padding>
+            <Label text="PANEL DE ADMINISTRACION" styleClass="admin-titulo"/>
+            <Label fx:id="labelUsuario" text="Usuario: admin" styleClass="admin-subtitulo"/>
+        </VBox>
+    </top>
+
+    <center>
+        <VBox spacing="12">
+            <padding><Insets top="8" right="20" bottom="8" left="20"/></padding>
+
+            <Label text="PARTIDAS GUARDADAS" styleClass="admin-seccion-titulo"/>
+
+            <TableView fx:id="tablaPartidas" styleClass="admin-table" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="colId"          text="ID"         prefWidth="50"/>
+                    <TableColumn fx:id="colNombre"      text="Nombre"     prefWidth="180"/>
+                    <TableColumn fx:id="colDia"         text="Dia"        prefWidth="70"/>
+                    <TableColumn fx:id="colDinero"      text="Dinero"     prefWidth="110"/>
+                    <TableColumn fx:id="colEstanterias" text="Estanterias" prefWidth="100"/>
+                    <TableColumn fx:id="colCajeros"     text="Cajeros"    prefWidth="90"/>
+                </columns>
+
+                <placeholder>
+                    <Label text="No hay partidas registradas." styleClass="admin-placeholder"/>
+                </placeholder>
+            </TableView>
+        </VBox>
+    </center>
+
+    <bottom>
+        <HBox spacing="12" alignment="CENTER_RIGHT">
+            <padding><Insets top="12" right="20" bottom="16" left="20"/></padding>
+
+            <Button fx:id="btnReiniciar"
+                    text="REINICIAR PARTIDA"
+                    onAction="#handleReiniciar"
+                    styleClass="admin-btn admin-btn-warning"/>
+
+            <Button fx:id="btnEliminar"
+                    text="ELIMINAR PARTIDA"
+                    onAction="#handleEliminar"
+                    styleClass="admin-btn admin-btn-danger"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>

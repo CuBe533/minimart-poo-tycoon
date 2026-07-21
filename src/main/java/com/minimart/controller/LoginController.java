@@ -1,5 +1,6 @@
 package com.minimart.controller;
 
+import com.minimart.App;
 import com.minimart.dao.UsuarioDAO;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -75,15 +76,21 @@ public class LoginController {
 
     private void irAlJuego() {
         try {
+            Stage stage = (Stage) btnLogin.getScene().getWindow();
+
+            if ("admin".equals(Sesion.getRol())) {
+                App.abrirPanelAdmin(stage);
+                return;
+            }
+
             if (!Sesion.esInvitado()){
-                com.minimart.App.verificarPartidaExistente();
+                App.verificarPartidaExistente();
             }
 
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/minimart/MainWindow.fxml")
             );
             Parent raiz = loader.load();
-            Stage stage = (Stage) btnLogin.getScene().getWindow();
             Scene escena = new Scene(raiz, 1080, 770);
             escena.getStylesheets().add(
                     getClass().getResource("/com/minimart/styles.css").toExternalForm()
