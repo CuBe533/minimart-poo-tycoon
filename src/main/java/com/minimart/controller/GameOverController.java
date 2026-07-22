@@ -19,6 +19,7 @@ public class GameOverController {
 
     private Stage stageGameOver;
     private Stage stagePrincipal;
+    private int tiendaId;
 
     @FXML
     public void initialize() {
@@ -26,9 +27,10 @@ public class GameOverController {
     }
 
     public void setDatos(int diasSobrevividos, double dineroMaximo,
-                         Stage stageGameOver, Stage stagePrincipal) {
+                         Stage stageGameOver, Stage stagePrincipal, int tiendaId) {
         this.stageGameOver  = stageGameOver;
         this.stagePrincipal = stagePrincipal;
+        this.tiendaId       = tiendaId;
 
         labelDiasSobrevividos.setText(String.valueOf(diasSobrevividos));
         labelDineroMaximo.setText(String.format("$%.2f", dineroMaximo));
@@ -36,7 +38,7 @@ public class GameOverController {
 
     private void handleNuevaPartida() {
         try {
-            new JuegoDAO().resetearPartida();
+            new JuegoDAO().resetearPartida(tiendaId);
 
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/minimart/MainWindow.fxml")

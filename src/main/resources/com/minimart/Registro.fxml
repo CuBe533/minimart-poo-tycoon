@@ -15,6 +15,7 @@
         <items>
             <FXCollections fx:factory="observableArrayList">
                 <String fx:value="administrador" />
+                <String fx:value="estandar" />
                 <String fx:value="invitado" />
             </FXCollections>
         </items>

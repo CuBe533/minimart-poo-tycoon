@@ -3,6 +3,7 @@ package com.minimart.admin;
 public class PartidaDTO {
 
     private int tiendaId;
+    private String usuarioNombre;
     private String nombreTienda;
     private double dineroActual;
     private int diaActual;
@@ -11,9 +12,10 @@ public class PartidaDTO {
 
     public PartidaDTO() {}
 
-    public PartidaDTO(int tiendaId, String nombreTienda, double dineroActual,
+    public PartidaDTO(int tiendaId, String usuarioNombre, String nombreTienda, double dineroActual,
                       int diaActual, int totalEstanterias, int cajerosActivos) {
         this.tiendaId        = tiendaId;
+        this.usuarioNombre   = usuarioNombre;
         this.nombreTienda    = nombreTienda;
         this.dineroActual    = dineroActual;
         this.diaActual       = diaActual;
@@ -23,6 +25,9 @@ public class PartidaDTO {
 
     public int    getTiendaId()          { return tiendaId; }
     public void   setTiendaId(int id)    { this.tiendaId = id; }
+
+    public String getUsuarioNombre()                  { return usuarioNombre; }
+    public void   setUsuarioNombre(String nombre)     { this.usuarioNombre = nombre; }
 
     public String getNombreTienda()                { return nombreTienda; }
     public void   setNombreTienda(String nombre)   { this.nombreTienda = nombre; }

@@ -61,11 +61,22 @@ public class ConexionBD {
         try (Statement stmt = getConnection().createStatement()) {
 
             stmt.execute("""
+                CREATE TABLE IF NOT EXISTS usuarios (
+                    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+                    usuario   TEXT NOT NULL UNIQUE,
+                    password  TEXT NOT NULL,
+                    rol       TEXT NOT NULL CHECK(rol IN ('invitado','estandar','admin'))
+                )
+            """);
+
+            stmt.execute("""
                 CREATE TABLE IF NOT EXISTS tienda (
                     id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                    usuario_id      INTEGER,
                     nombre_tienda   TEXT    NOT NULL DEFAULT 'Mi MiniMart',
                     dinero_actual   REAL    NOT NULL DEFAULT 500.0,
-                    dia_actual      INTEGER NOT NULL DEFAULT 1
+                    dia_actual      INTEGER NOT NULL DEFAULT 1,
+                    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE SET NULL
                 )
             """);
 
@@ -93,46 +104,9 @@ public class ConexionBD {
                 )
             """);
 
-            stmt.execute("""
-                INSERT OR IGNORE INTO tienda (id, nombre_tienda, dinero_actual, dia_actual)
-                VALUES (1, 'Mi MiniMart', 500.0, 1)
-            """);
-
-            stmt.execute("""
-                INSERT INTO cajeros (tienda_id, nivel_mejora, tiempo_despacho, activo)
-                SELECT 1, 1, 3, 1
-                WHERE NOT EXISTS (
-                    SELECT 1 FROM cajeros WHERE tienda_id = 1
-                )
-                UNION ALL
-                SELECT 1, 1, 5, 0
-                WHERE NOT EXISTS (
-                    SELECT 1 FROM cajeros WHERE tienda_id = 1
-                )
-                UNION ALL
-                SELECT 1, 1, 5, 0
-                WHERE NOT EXISTS (
-                    SELECT 1 FROM cajeros WHERE tienda_id = 1
-                )
-            """);
-
-            stmt.execute("""
-                INSERT INTO estanterias (tienda_id, tipo_producto, stock_actual, stock_maximo, posicion_visual)
-                SELECT 1, 'Snacks', 10, 10, 1
-                WHERE NOT EXISTS (
-                    SELECT 1 FROM estanterias WHERE tienda_id = 1 AND posicion_visual = 1
-                )
-            """);
-
-            stmt.execute("""
-                CREATE TABLE IF NOT EXISTS usuarios (
-                    id        INTEGER PRIMARY KEY AUTOINCREMENT,
-                    usuario   TEXT NOT NULL UNIQUE,
-                    password  TEXT NOT NULL,
-                    rol       TEXT NOT NULL CHECK(rol IN ('invitado','usuario','admin'))
-                )
-            """);
-
+            try {
+                stmt.execute("ALTER TABLE tienda ADD COLUMN usuario_id INTEGER");
+            } catch (SQLException ignored) {}
 
             System.out.println("[ConexionBD] Esquema inicializado correctamente.");
 

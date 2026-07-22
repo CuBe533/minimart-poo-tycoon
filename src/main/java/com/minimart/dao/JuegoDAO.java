@@ -53,7 +53,7 @@ public class JuegoDAO {
             }
 
             conexion.commit();
-            System.out.println("[JuegoDAO] Estado completo guardado — día " + t.getDiaActual() +
+            System.out.println("[JuegoDAO] Estado completo guardado — dia " + t.getDiaActual() +
                     ", dinero $" + String.format("%.2f", t.getDineroActual()));
 
         } catch (SQLException e) {
@@ -74,45 +74,45 @@ public class JuegoDAO {
     }
 
 
-    public void resetearPartida() {
+    public void resetearPartida(int tiendaId) {
         try {
             conexion.setAutoCommit(false);
 
             try (PreparedStatement ps = conexion.prepareStatement(
                     "DELETE FROM estanterias WHERE tienda_id = ?")) {
-                ps.setInt(1, 1);
+                ps.setInt(1, tiendaId);
                 ps.executeUpdate();
             }
 
             try (PreparedStatement ps = conexion.prepareStatement(
                     "DELETE FROM cajeros WHERE tienda_id = ?")) {
-                ps.setInt(1, 1);
+                ps.setInt(1, tiendaId);
                 ps.executeUpdate();
             }
 
             try (PreparedStatement ps = conexion.prepareStatement(
                     "UPDATE tienda SET dinero_actual = 500.0, dia_actual = 1 WHERE id = ?")) {
-                ps.setInt(1, 1);
+                ps.setInt(1, tiendaId);
                 ps.executeUpdate();
             }
 
             try (PreparedStatement ps = conexion.prepareStatement(
-                    "INSERT INTO cajeros (tienda_id, nivel_mejora, tiempo_despacho, activo) VALUES (?, 1, 5, 1), (?, 1, 5, 0), (?, 1, 5, 0)")) {
-                ps.setInt(1, 1);
-                ps.setInt(2, 1);
-                ps.setInt(3, 1);
+                    "INSERT INTO cajeros (tienda_id, nivel_mejora, tiempo_despacho, activo) VALUES (?, 1, 3, 1), (?, 1, 5, 0), (?, 1, 5, 0)")) {
+                ps.setInt(1, tiendaId);
+                ps.setInt(2, tiendaId);
+                ps.setInt(3, tiendaId);
                 ps.executeUpdate();
             }
 
             try (PreparedStatement ps = conexion.prepareStatement(
                     "INSERT INTO estanterias (tienda_id, tipo_producto, stock_actual, stock_maximo, posicion_visual) " +
                             "VALUES (?, 'Snacks', 10, 10, 1)")) {
-                ps.setInt(1, 1);
+                ps.setInt(1, tiendaId);
                 ps.executeUpdate();
             }
 
             conexion.commit();
-            System.out.println("[JuegoDAO] Partida reseteada a estado inicial.");
+            System.out.println("[JuegoDAO] Partida id=" + tiendaId + " reseteada a estado inicial.");
 
         } catch (SQLException e) {
             try {

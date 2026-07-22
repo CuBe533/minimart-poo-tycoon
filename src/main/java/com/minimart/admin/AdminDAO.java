@@ -18,6 +18,7 @@ public class AdminDAO {
         List<PartidaDTO> lista = new ArrayList<>();
         String sql = """
             SELECT t.id,
+                   COALESCE(u.usuario, 'desconocido') AS usuario_nombre,
                    t.nombre_tienda,
                    t.dinero_actual,
                    t.dia_actual,
@@ -25,6 +26,7 @@ public class AdminDAO {
                    (SELECT COUNT(*) FROM cajeros     WHERE tienda_id = t.id
                                                           AND activo = 1)       AS cajeros_activos
             FROM tienda t
+            LEFT JOIN usuarios u ON u.id = t.usuario_id
             ORDER BY t.dia_actual DESC, t.id ASC
         """;
         try (Statement stmt = conexion.createStatement();
@@ -32,6 +34,7 @@ public class AdminDAO {
             while (rs.next()) {
                 lista.add(new PartidaDTO(
                     rs.getInt("id"),
+                    rs.getString("usuario_nombre"),
                     rs.getString("nombre_tienda"),
                     rs.getDouble("dinero_actual"),
                     rs.getInt("dia_actual"),

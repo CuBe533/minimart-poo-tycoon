@@ -1,7 +1,7 @@
 # Estado Actual del Proyecto — MiniMart POO Tycoon
 
-> **Sprint completado:** 5 de 7 — Operaciones CRUD desde Botones
-> **Fecha:** 2026-06-29
+> **Sprint completado:** 8 de 8 — Multi-tenant, Login, Panel Admin
+> **Fecha:** 2026-07-21
 
 ---
 
@@ -10,7 +10,7 @@
 | Componente | Versión | Rol |
 |---|---|---|
 | Java | 21 (LTS) | Lenguaje base, records, text blocks |
-| JavaFX | 26.0.1 | UI toolkit (Controls + FXML) |
+| JavaFX | 26.0.1 | UI toolkit (Controls + FXML + Media) |
 | SQLite JDBC | 3.45.1.0 | Driver xerial para BD embebida |
 | Maven | 3.9+ (plugin compiler 3.11.0) | Build y dependencias |
 | javafx-maven-plugin | 0.0.8 | Ejecución con `mvn javafx:run` |
@@ -38,6 +38,12 @@
         <classifier>${javafx.platform}</classifier>
     </dependency>
     <dependency>
+        <groupId>org.openjfx</groupId>
+        <artifactId>javafx-media</artifactId>
+        <version>${javafx.version}</version>
+        <classifier>${javafx.platform}</classifier>
+    </dependency>
+    <dependency>
         <groupId>org.xerial</groupId>
         <artifactId>sqlite-jdbc</artifactId>
         <version>3.45.1.0</version>
@@ -45,50 +51,62 @@
 </dependencies>
 ```
 
-Nota: `javafx-maven-plugin` configura `mainClass` como `com.minimart/com.minimart.App` (formato módulo/clase, obligatorio con `module-info.java`).
-
 ---
 
 ## 2. Estructura Completa de Directorios
 
 ```
-ProyectoTycoon/
+minimart-poo-tycoon/
 ├── pom.xml
 ├── .gitignore
-├── .opencode/
-│   ├── skills/
-│   │   ├── SKILL.md                     ← Sprint 0
-│   │   └── SKILL_sprint1.md             ← Sprint 1
-│   └── specs/
-│       ├── SPEC.md                      ← Sprint 0
-│       └── SPEC_sprint1.md              ← Sprint 1
-├── src/
-│   └── main/
-│       ├── java/com/minimart/
-│       │   ├── module-info.java
-│       │   ├── App.java
-│       │   ├── controller/
-│       │   │   ├── MainController.java
-│       │   │   └── GameLoopService.java        ← Sprint 4
-│       │   ├── model/
-│       │   │   ├── Tienda.java
-│       │   │   ├── Estanteria.java
-│       │   │   ├── Cajero.java
-│       │   │   └── Cliente.java
-│       │   ├── dao/
-│       │   │   ├── ConexionBD.java
-│       │   │   ├── DAO.java
-│       │   │   ├── TiendaDAO.java
-│       │   │   ├── EstanteriaDAO.java
-│       │   │   └── CajeroDAO.java
-│       │   └── view/
-│       │       ├── PanelesView.java
-│       │       └── package-info.java
-│       └── resources/com/minimart/
-│           ├── MainWindow.fxml
-│           └── styles.css
-└── target/                              ← Build output (ignorado por git)
+├── src/main/java/com/minimart/
+│   ├── module-info.java              19 líneas
+│   ├── App.java                     155 líneas
+│   ├── controller/
+│   │   ├── Sesion.java               20 líneas
+│   │   ├── LoginController.java     112 líneas
+│   │   ├── RegistroController.java   84 líneas
+│   │   ├── MainController.java      743 líneas
+│   │   ├── GameLoopService.java     199 líneas
+│   │   ├── AnimacionService.java     30 líneas
+│   │   ├── PreciosConfig.java        21 líneas
+│   │   ├── GameOverController.java   63 líneas
+│   │   └── ResumenDiaController.java 44 líneas
+│   ├── model/
+│   │   ├── Tienda.java               62 líneas
+│   │   ├── Estanteria.java           61 líneas
+│   │   ├── Cajero.java               58 líneas
+│   │   └── Cliente.java              36 líneas
+│   ├── dao/
+│   │   ├── DAO.java                  17 líneas
+│   │   ├── ConexionBD.java          130 líneas
+│   │   ├── TiendaDAO.java           171 líneas
+│   │   ├── EstanteriaDAO.java       143 líneas
+│   │   ├── CajeroDAO.java           149 líneas
+│   │   ├── JuegoDAO.java            132 líneas
+│   │   └── UsuarioDAO.java           54 líneas
+│   ├── admin/
+│   │   ├── AdminController.java     161 líneas
+│   │   ├── AdminDAO.java            150 líneas
+│   │   └── PartidaDTO.java           52 líneas
+│   └── view/
+│       ├── PanelesView.java           5 líneas
+│       └── package-info.java          2 líneas
+├── src/main/resources/com/minimart/
+│   ├── login.fxml                    32 líneas
+│   ├── Registro.fxml                 26 líneas
+│   ├── MainWindow.fxml              190 líneas
+│   ├── AdminPanel.fxml               63 líneas
+│   ├── ResumenDia.fxml               49 líneas
+│   ├── GameOver.fxml                 42 líneas
+│   ├── styles.css                   173 líneas
+│   ├── admin-styles.css             139 líneas
+│   ├── audio/melody.mp3             6.4 MB
+│   └── imagenes/                     22 GIFs
+└── target/                           (ignorado por git)
 ```
+
+**Total:** 27 archivos Java (~2,772 líneas) + 6 FXML + 2 CSS + 1 audio + 22 GIFs.
 
 ---
 
@@ -99,6 +117,7 @@ module com.minimart {
     requires javafx.controls;
     requires javafx.fxml;
     requires java.sql;
+    requires javafx.media;
 
     opens com.minimart to javafx.fxml;
 
@@ -108,166 +127,201 @@ module com.minimart {
 
     exports com.minimart.controller;
     exports com.minimart.view;
+    exports com.minimart.admin;
     opens   com.minimart.controller to javafx.fxml;
     opens   com.minimart.view       to javafx.fxml;
+    opens   com.minimart.admin      to javafx.fxml;
 }
 ```
 
-Las 4 líneas de `controller` y `view` se agregaron al crear los primeros archivos Java en esos paquetes (Sprint 2).
+6 paquetes exportados, 4 abiertos a `javafx.fxml` (para reflexión FXML).
 
 ---
 
-## 4. `App.java` — Punto de Entrada
+## 4. `App.java` — Punto de Entrada (155 líneas)
 
 ### Ciclo de vida
 
 | Método | Hilo | Responsabilidad |
 |---|---|---|
-| `init()` | Inicialización (no UI) | Inicializar BD |
-| `start()` | JavaFX Application | Cargar FXML, mostrar escena con CSS |
-| `stop()` | JavaFX Application | Cerrar conexión BD |
+| `init()` | Inicialización (no UI) | Inicializar BD (`ConexionBD.initDB()`) |
+| `start(Stage)` | JavaFX Application | Cargar `login.fxml`, iniciar música de fondo |
+| `stop()` | JavaFX Application | Auto-save partida en curso, parar música, cerrar BD |
 
-### Contenido actual (45 líneas)
+### Funcionalidades
 
-```java
-package com.minimart;
+- **Pantalla de inicio:** Carga `login.fxml` como pantalla principal (no `MainWindow.fxml`)
+- **Música de fondo:** `MediaPlayer` con `melody.mp3`, ciclo `INDEFINITE`, volumen 10%
+- **Auto-save:** `stop()` llama `JuegoDAO.guardarEstadoCompleto(tiendaEnJuego)` si hay partida activa
+- **`verificarPartidaExistente()`:** Detecta si el usuario tiene progreso (día > 1, dinero != 500, estanterías, cajeros mejorados). Si existe, ofrece continuar o empezar nueva partida via `ConfirmationAlert`
+- **`abrirPanelAdmin(Stage)`:** Abre panel admin como modal para usuarios con rol `admin`
+- **`setTiendaEnJuego(Tienda)`:** Registra la tienda activa para auto-save al cerrar
 
-import com.minimart.dao.ConexionBD;
-import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.stage.Stage;
+---
 
-public class App extends Application {
+## 5. Sistema de Login y Roles
 
-    @Override
-    public void init() throws Exception {
-        ConexionBD.getInstance().initDB();
-    }
+### Flujo de autenticación
 
-    @Override
-    public void start(Stage stage) throws IOException {
-        FXMLLoader loader = new FXMLLoader(
-            getClass().getResource("/com/minimart/MainWindow.fxml")
-        );
-        Parent raiz = loader.load();
-        Scene escena = new Scene(raiz, 1024, 768);
-        escena.getStylesheets().add(
-            getClass().getResource("/com/minimart/styles.css").toExternalForm()
-        );
-        stage.setTitle("MiniMart POO Tycoon");
-        stage.setScene(escena);
-        stage.setResizable(false);
-        stage.show();
-    }
-
-    @Override
-    public void stop() throws Exception {
-        ConexionBD.getInstance().cerrar();
-    }
-
-    public static void main(String[] args) { launch(args); }
-}
+```
+App.start() → login.fxml
+  ├─ [Ingresar]  → LoginController.handleLogin() → UsuarioDAO.validarLogin()
+  │     ├─ rol=admin    → App.abrirPanelAdmin()
+  │     ├─ rol=estandar → verificarPartidaExistente() → MainWindow.fxml
+  │     └─ rol=invitado → verificarPartidaExistente() → MainWindow.fxml
+  ├─ [Invitado]   → LoginController.handleGuest() → crear/recuperar "guest" → MainWindow.fxml
+  └─ [Crear cuenta] → Registro.fxml → Login.fxml
 ```
 
-- El bloque temporal `verificarCapaDatos()` fue eliminado (como estaba previsto).
-- Ahora carga `MainWindow.fxml` mediante `FXMLLoader` y aplica `styles.css`.
+### `Sesion.java` (20 líneas)
 
----
+Sesión estática con campos: `rol`, `usuarioId`, `nombreUsuario`.
 
-## 5. `MainController.java` — Controlador Principal (Sprints 2 + 3 + 4 + 5)
-
-~340 líneas con inyección FXML + lógica de carga, bindings, game loop y handlers de upgrade:
-
-**Estanterías (5 slots):**
-- `slotEstanteria1-5` (VBox), `imgEstanteria1-5` (ImageView)
-- `stockBar1-5` (ProgressBar), `labelTipo1-5` (Label)
-
-**Cajeros (3 slots):**
-- `slotCajero1-3` (VBox), `imgCajero1-3` (ImageView)
-- `atenderBar1-3` (ProgressBar)
-
-**Compradores (4 slots):**
-- `comprador1-4` (ImageView)
-
-**Upgrades:**
-- `btnUpgrade1` (Comprar Estantería), `btnUpgrade2` (Reabastecer), `btnUpgrade3` (Mejorar Cajero)
-
-**Estadísticas:**
-- `labelDinero`, `labelReputacion`, `labelDia`, `btnAvanzarDia`
-
-**Lógica Sprint 3:**
-- `initialize()` llama `cargarPartida()` dentro de `try/catch` con manejo de error vía `Alert`
-- `cargarPartida()` instancia `TiendaDAO`, obtiene `tiendaActual = dao.cargarPartidaCompleta(1)`
-- Arreglos indexados (`slotsEstanteria[]`, `labelsTipo[]`, `barrasStock[]`, `slotsCajero[]`) para mapeo por `posicionVisual - 1`
-- Binding reactivo: `labelDinero` ↔ `dineroActualProperty()`, `labelDia` ↔ `diaActualProperty()`
-- Binding reactivo: `stockBar` ↔ `stockActualProperty().divide(stockMaximo)` por cada estantería
-- Opacidad de slots según datos reales (`isActivo()` en cajeros, existencia en estanterías)
-**Lógica Sprint 4:**
-- `initialize()` ahora también llama `iniciarGameLoop()` después de `cargarPartida()`
-- `iniciarGameLoop()` crea un `GameLoopService(tiendaActual, this)` y arranca el Timeline
-- `actualizarVistas()` público refresca las barras de atención de cajeros en cada tick del game loop
-- `getTiendaActual()` expone el modelo para Sprint 5+
-
-**Lógica Sprint 5:**
-- `configurarHandlers()` enlaza `btnUpgrade1` → `handleComprarEstanteria()`, `btnUpgrade2` → `handleReabastecer()`, `btnUpgrade3` → `handleMejorarCajero()` via `setOnAction()`
-- `handleComprarEstanteria()`: valida límite (5), fondos ($150), crea `Estanteria` con tipo secuencial del catálogo `["Snacks","Bebidas","Lácteos","Dulces","Conservas"]`, persiste con `EstanteriaDAO.save()`, activa slot visual con binding reactivo, descuenta dinero
-- `handleReabastecer()`: filtra estanterías con stock bajo, muestra `ChoiceDialog` para elegir, persiste con `EstanteriaDAO.update()`, descuenta $50
-- `handleMejorarCajero()`: si hay inactivos los contrata (`activo=true`, $200); si no, mejora el de menor nivel (nivel+1, tiempo-2, mínimo 1s, $200), persiste con `CajeroDAO.update()`
-- Helpers: `tieneFondos(costo)` con Alert WARNING, `descontarDinero(monto)`, `actualizarEstadoBotones()` (deshabilita btnUpgrade1 al llegar a 5 estanterías), `mostrarInfo()`
-
----
-
-## 6. `MainWindow.fxml` — Layout Principal (Sprint 2)
-
-220 líneas con estructura `BorderPane`:
-
-| Zona | Componente | Contenido |
-|---|---|---|
-| **Center** | VBox | Franja estanterías (HBox, 5 slots) + Franja cajeros/compradores (HBox, 3 cajeros + 4 compradores) |
-| **Right** | VBox (200px fijo) | 3 tarjetas de upgrade (Comprar, Reabastecer, Mejorar) + Estadísticas (Reputación, Dinero, Día) + Botón Avanzar Día |
-
-- Slots usan imágenes placeholder de placehold.co.
-- Slots de estanterías 2-5 y cajeros 2-3 empiezan con opacidad reducida (0.3) indicando que están bloqueados.
-
----
-
-## 7. `styles.css` — Hoja de Estilos (Sprint 2)
-
-164 líneas con clases para todos los componentes visuales:
-
-| Clase | Propósito |
+| Método | Descripción |
 |---|---|
-| `.ventana-principal` | Fondo #2B2B2B |
-| `.franja-estanterias` | Fondo #90EE90 (verde claro) |
-| `.franja-cajeros` | Fondo #FFB347 (naranja) |
-| `.slot-estanteria` | Fondo translúcido, hover más claro |
-| `.slot-cajero` | Fondo translúcido |
-| `.barra-stock` | Barra verde (#1D9E75) |
-| `.barra-atencion` | Barra ámbar (#E2A01A) |
-| `.panel-derecho` | Fondo #808080 (gris) |
-| `.titulo-panel` | Texto #FFD700 (dorado) |
-| `.tarjeta-upgrade` | Borde dorado, fondo oscuro |
-| `.seccion-stats` | Fondo oscuro translúcido |
+| `esAdmin()` | `"admin".equals(rol)` |
+| `esEstandar()` | `"estandar".equals(rol)` |
+| `esInvitado()` | `"invitado".equals(rol)` |
+
+### `UsuarioDAO.java` (54 líneas)
+
+| Método | Retorna |
+|---|---|
+| `existeUsuario(String)` | `boolean` |
+| `registrar(String, String, String)` | `int` (ID generado) |
+| `validarLogin(String, String)` | `String[]{id, rol}` o `null` |
+
+### `LoginController.java` (112 líneas)
+
+- Campos FXML: `txtUsuario`, `txtPassword`, `btnLogin`, `btnGuest`, `btnRegistro`, `labelError`
+- **`handleLogin()`:** Valida campos no vacíos, consulta BD, establece sesión, navega al juego
+- **`handleGuest()`:** Crea usuario "guest" si no existe (password `"none"`, rol `"invitado"`), inicia sesión directa
+- **`irAlJuego()`:** Admin → panel admin; invitado → sin verificar partida; estándar → `verificarPartidaExistente()`
+
+### `RegistroController.java` (84 líneas)
+
+- ComboBox de roles: "administrador", "estandar", "invitado"
+- Valida: campos no vacíos, contraseñas coinciden, rol seleccionado, usuario único
+- Mapeo ComboBox → BD: "administrador" → `"admin"`, "estandar" → `"estandar"`, default → `"invitado"`
 
 ---
 
-## 8. `ConexionBD.java` — Singleton de Base de Datos (sin cambios desde Sprint 1)
+## 6. Panel de Administración
 
-### Patrón: Double-checked locking thread-safe
+### `AdminController.java` (161 líneas)
 
+- **`abrirPanel(Stage)`:** Carga `AdminPanel.fxml` como `APPLICATION_MODAL`
+- **`configurarTabla()`:** Vincula `PartidaDTO` a 7 columnas (ID, Usuario, Nombre, Dia, Dinero, Estanterias, Cajeros)
+- **`handleReiniciar()`:** Confirmación → `AdminDAO.reiniciarPartida(tiendaId)` → refresca tabla
+- **`handleEliminar()`:** Advertencia → `AdminDAO.eliminarPartida(tiendaId)` → refresca tabla
+
+### `AdminDAO.java` (150 líneas)
+
+| Método | Descripción |
+|---|---|
+| `listarPartidas()` | JOIN `tienda` + `usuarios` → `List<PartidaDTO>`, ordenado por día DESC |
+| `reiniciarPartida(int)` | Transacción: DELETE estanterías → DELETE cajeros → UPDATE tienda ($500, día 1) → INSERT semilla |
+| `eliminarPartida(int)` | Transacción: DELETE estanterías → DELETE cajeros → DELETE tienda |
+
+### `PartidaDTO.java` (52 líneas)
+
+DTO con: `tiendaId`, `usuarioNombre`, `nombreTienda`, `dineroActual`, `diaActual`, `totalEstanterias`, `cajerosActivos`.
+
+---
+
+## 7. `MainController.java` — Controlador Principal (743 líneas)
+
+### Componentes FXML
+
+| Zona | Componentes |
+|---|---|
+| **Estanterías** (5 slots) | `slotEstanteria1-5` (VBox), `imgEstanteria1-5` (ImageView), `stockBar1-5` (ProgressBar), `labelTipo1-5` (Label) |
+| **Cajeros** (3 slots) | `slotCajero1-3` (VBox), `imgCajero1-3` (ImageView), `atenderBar1-3` (ProgressBar) |
+| **Compradores** (4 slots) | `comprador1-4` (ImageView) |
+| **Upgrades** | `btnUpgrade1` (Estantería $150), `btnUpgrade2` (Reabastecer $50), `btnUpgrade3` (Cajero $200) |
+| **Estadísticas** | `labelDinero`, `labelReputacion`, `labelDia`, `btnAvanzarDia` |
+
+### Métodos principales
+
+| Método | Descripción |
+|---|---|
+| `initialize()` | Carga partida, inicia game loop, asigna 22 GIFs sprites |
+| `cargarPartida()` | `TiendaDAO.cargarPartidaPorUsuario(Sesion.getUsuarioId())`, binding reactivo |
+| `iniciarGameLoop()` | Crea `GameLoopService(tiendaActual, this)`, arranca Timeline |
+| `actualizarVistas()` | Refresca barras de atención, aplica rojo para stock crítico (<30%) |
+| `handleComprarEstanteria()` | Límite 5, $150, tipo secuencial del catálogo |
+| `handleReabastecer()` | ChoiceDialog, $50 |
+| `handleMejorarCajero()` | Contratar inactivo ($200) o mejorar el de menor nivel ($200) |
+| `handleAvanzarDia()` | Restricción para invitados, guarda estado, incrementa día, muestra `ResumenDiaController` |
+| `mostrarGameOver()` | Carga `GameOver.fxml` como modal |
+
+### Sistema visual de clientes (~130 líneas)
+
+- Walking animation: 2s Timeline con 4 sprites de caminata alternados
+- Sprite estático al llegar al cajero (4 variantes)
+- Mostrador alterna entre 3 sprites de servicio
+- Imágenes cargadas vía `getResourceAsStream()`
+
+---
+
+## 8. Game Loop — `GameLoopService.java` (199 líneas)
+
+### Configuración
+
+| Constante | Valor |
+|---|---|
+| Probabilidad de spawn | 80% por tick |
+| Umbral de despacho rápido | ≤ 3 segundos → +2 reputación |
+| Reputación inicial | 100.0 |
+
+### Flujo por tick (cada 1s)
+
+```
+1. ¿Llega cliente? → 80% sí: elige producto al azar, crea Cliente,
+   resta stock, asigna al cajero menos ocupado
+2. Cada cajero activo con cola: decrementa segundosRestantes
+3. ¿segundosRestantes ≤ 0? → cobra cliente (+dinero, +animación),
+   saca de cola, inicia siguiente si hay
+4. Actualizar reputación: -0.5 por estantería vacía por tick
+5. ¿Game Over? → dinero < 0 O reputación ≤ 0 → pausar y mostrar pantalla
+```
+
+### Catálogo de precios
+
+| Producto | Precio |
+|---|---|
+| Snacks | $4.00 |
+| Bebidas | $3.00 |
+| Lácteos | $7.00 |
+| Dulces | $3.20 |
+| Conservas | $5.00 |
+
+---
+
+## 9. `ConexionBD.java` — Singleton de Base de Datos (130 líneas)
+
+- **Patrón:** Double-checked locking thread-safe
 - **URL:** `jdbc:sqlite:` + `{user.home}/minimart.db`
 - **PRAGMA:** `foreign_keys = ON`
 - **Reconexión automática:** `getConnection()` verifica `isClosed()` y reabre si es necesario
 
 ### Tablas
 
+#### `usuarios` (Sprint 8)
+
+| Columna | Tipo | Default | Restricciones |
+|---|---|---|---|
+| id | INTEGER | — | PK AUTOINCREMENT |
+| usuario | TEXT | — | NOT NULL UNIQUE |
+| password | TEXT | — | NOT NULL |
+| rol | TEXT | — | NOT NULL, CHECK('invitado','estandar','admin') |
+
 #### `tienda`
 
 | Columna | Tipo | Default | Restricciones |
 |---|---|---|---|
 | id | INTEGER | — | PK AUTOINCREMENT |
+| usuario_id | INTEGER | NULL | FK → usuarios(id) ON DELETE SET NULL |
 | nombre_tienda | TEXT | 'Mi MiniMart' | NOT NULL |
 | dinero_actual | REAL | 500.0 | NOT NULL |
 | dia_actual | INTEGER | 1 | NOT NULL |
@@ -293,50 +347,43 @@ public class App extends Application {
 | tiempo_despacho | INTEGER | 5 | NOT NULL |
 | activo | INTEGER | 0 | NOT NULL, CHECK(0,1) |
 
-### Datos Semilla
+### Semilla programática
 
-```sql
-INSERT OR IGNORE INTO tienda (id, nombre_tienda, dinero_actual, dia_actual)
-VALUES (1, 'Mi MiniMart', 500.0, 1);
-
-INSERT INTO cajeros (tienda_id, nivel_mejora, tiempo_despacho, activo)
-SELECT 1, 1, 5, 1 WHERE NOT EXISTS (SELECT 1 FROM cajeros WHERE tienda_id = 1);
-
-INSERT INTO estanterias (tienda_id, tipo_producto, stock_actual, stock_maximo, posicion_visual)
-SELECT 1, 'Snacks', 10, 10, 1 WHERE NOT EXISTS (SELECT 1 FROM estanterias WHERE tienda_id = 1 AND posicion_visual = 1);
-```
-
-**Idempotencia garantizada.**
+Ya no se insertan datos en `initDB()`. La semilla se crea en:
+- `TiendaDAO.crearPartidaInicial(usuarioId)` — 1 estantería Snacks + 3 cajeros (1 activo a 3s, 2 inactivos a 5s)
+- `JuegoDAO.resetearPartida(tiendaId)` — misma semilla para nueva partida
+- `AdminDAO.reiniciarPartida(tiendaId)` — reinicio desde panel admin
 
 ---
 
-## 9. Modelos (4 clases en `com.minimart.model`)
+## 10. Modelos (4 clases en `com.minimart.model`)
 
-### 9.1 `Tienda.java`
+### `Tienda.java` (62 líneas)
 
 | Campo | Tipo Java | Property? |
 |---|---|---|
 | id | `int` | No |
-| nombreTienda | `SimpleStringProperty` | Sí → `nombreTiendaProperty()` |
-| dineroActual | `SimpleDoubleProperty` | Sí → `dineroActualProperty()` |
-| diaActual | `SimpleIntegerProperty` | Sí → `diaActualProperty()` |
+| usuarioId | `int` | No |
+| nombreTienda | `SimpleStringProperty` | Sí |
+| dineroActual | `SimpleDoubleProperty` | Sí |
+| diaActual | `SimpleIntegerProperty` | Sí |
 | estanterias | `List<Estanteria>` | No |
 | cajeros | `List<Cajero>` | No |
 
-### 9.2 `Estanteria.java`
+### `Estanteria.java` (61 líneas)
 
 | Campo | Tipo Java | Property? |
 |---|---|---|
 | id | `int` | No |
 | tiendaId | `int` | No |
 | tipoProducto | `String` | No |
-| stockActual | `SimpleIntegerProperty` | Sí → `stockActualProperty()` |
+| stockActual | `SimpleIntegerProperty` | Sí |
 | stockMaximo | `int` | No |
 | posicionVisual | `int` (1-5) | No |
 
 **Helpers:** `tieneStock()`, `getPorcentajeStock()`.
 
-### 9.3 `Cajero.java`
+### `Cajero.java` (58 líneas)
 
 | Campo | Tipo Java | Persiste? |
 |---|---|---|
@@ -348,9 +395,7 @@ SELECT 1, 'Snacks', 10, 10, 1 WHERE NOT EXISTS (SELECT 1 FROM estanterias WHERE 
 | colaClientes | `Queue<Cliente>` (LinkedList) | No (efímero) |
 | segundosRestantes | `int` | No (efímero) |
 
-**Helpers:** `getTamañoCola()`, `estaOcupado()`.
-
-### 9.4 `Cliente.java`
+### `Cliente.java` (36 líneas)
 
 Cliente de sesión (no persiste en BD).
 
@@ -363,7 +408,7 @@ Cliente de sesión (no persiste en BD).
 
 ---
 
-## 10. DAOs (3 implementaciones en `com.minimart.dao`)
+## 11. DAOs (7 implementaciones en `com.minimart.dao`)
 
 ### `DAO<T>` — Interfaz Genérica
 
@@ -377,31 +422,88 @@ public interface DAO<T> {
 }
 ```
 
-### `EstanteriaDAO`
+### Resumen de DAOs
 
-CRUD + `findByTiendaId()` + `updateStock()`.
-
-### `CajeroDAO`
-
-CRUD + `findByTiendaId()` + `activar()` + `mejorar()`.
-
-### `TiendaDAO`
-
-CRUD + `cargarPartidaCompleta(int tiendaId)` — punto de entrada del juego.
+| DAO | Métodos especiales |
+|---|---|
+| `TiendaDAO` | `cargarPartidaPorUsuario(usuarioId)`, `crearPartidaInicial(usuarioId)`, `findByUsuarioId(usuarioId)` |
+| `EstanteriaDAO` | `findByTiendaId(tiendaId)`, `updateStock(id, nuevoStock)` |
+| `CajeroDAO` | `findByTiendaId(tiendaId)`, `activar(id)`, `mejorar(id)` |
+| `JuegoDAO` | `guardarEstadoCompleto(Tienda)`, `resetearPartida(tiendaId)` — transaccionales |
+| `UsuarioDAO` | `existeUsuario(usuario)`, `registrar(usuario, pass, rol)`, `validarLogin(usuario, pass)` |
 
 ---
 
-## 11. Paquetes
+## 12. Servicios Auxiliares
+
+### `AnimacionService.java` (30 líneas)
+
+`animarGanancia(Label)`: FadeTransition (500ms, 2 ciclos, auto-reverse) en color verde sobre label de dinero.
+
+### `PreciosConfig.java` (21 líneas)
+
+Mapa estático de precios por tipo de producto (Snacks $4, Bebidas $3, Lácteos $7, Dulces $3.2, Conservas $5, default $2).
+
+---
+
+## 13. FXML y Estilos
+
+### Pantallas (6 FXML)
+
+| FXML | Tamaño | Descripción |
+|---|---|---|
+| `login.fxml` | 400×400 | Login con usuario/contraseña + botón Invitado + Crear cuenta |
+| `Registro.fxml` | 400×400 | Registro con ComboBox de roles |
+| `MainWindow.fxml` | 1024×768 | Layout principal (BorderPane: center + right) |
+| `AdminPanel.fxml` | 850×520 | Panel admin con TableView + botones reiniciar/eliminar |
+| `ResumenDia.fxml` | 380×320 | Modal de resumen de jornada |
+| `GameOver.fxml` | 380×320 | Modal de game over con estadísticas |
+
+### Hojas de estilo (2 CSS)
+
+| CSS | Líneas | Propósito |
+|---|---|---|
+| `styles.css` | 173 | Estilos del juego principal |
+| `admin-styles.css` | 139 | Tema oscuro para panel admin |
+
+---
+
+## 14. Assets
+
+### Audio
+
+- `audio/melody.mp3` (6.4 MB) — Música de fondo, ciclo infinito al 10% volumen
+
+### Sprites GIF (22 archivos)
+
+| Sprite | Uso |
+|---|---|
+| `producto_snacks.gif`, `producto_bebidas.gif`, `producto_lacteos.gif`, `producto_dulces.gif`, `producto_conservas.gif` | Imágenes de estanterías por tipo |
+| `cajero.gif`, `atendiendo.gif`, `MejoraCajero.gif` | Sprites de cajeros |
+| `cliente.gif` | Sprite base de cliente |
+| `clienteCaminando1-4.gif` | Animación de caminata |
+| `ClienteEstatico1-4.gif` | Sprites estáticos al counter |
+| `Mostrador.gif`, `Mostrador (2).gif`, `Mostrador (3).gif` | Sprites de mostrador |
+| `upgrade_estanteria.gif`, `upgrade_reabastecer.gif` | Iconos de botones de upgrade |
+
+---
+
+## 15. Resumen de Archivos (27 Java + 8 recursos)
 
 | Paquete | Archivos | Estado |
 |---|---|---|
-| `controller/` | `MainController.java`, `GameLoopService.java` | Sprint 5 completado (CRUD desde botones de upgrade) |
-| `view/` | `PanelesView.java`, `package-info.java` | Sprint 2 (esqueleto) |
-| `resources/` | `MainWindow.fxml`, `styles.css` | Sprint 2 completado |
+| `controller/` | 9 archivos | Login, registro, main, game loop, animación, precios, game over, resumen día |
+| `model/` | 4 archivos | Tienda, Estanteria, Cajero, Cliente |
+| `dao/` | 7 archivos | ConexionBD, DAO, Tienda, Estanteria, Cajero, Juego, Usuario |
+| `admin/` | 3 archivos | AdminController, AdminDAO, PartidaDTO |
+| `view/` | 2 archivos | PanelesView, package-info |
+| `resources/` | 8 archivos | 6 FXML, 2 CSS |
+| `resources/imagenes/` | 22 GIFs | Sprites del juego |
+| `resources/audio/` | 1 MP3 | Música de fondo |
 
 ---
 
-## 12. Comandos de Build y Ejecución
+## 16. Comandos de Build y Ejecución
 
 | Comando | Propósito |
 |---|---|
@@ -411,178 +513,103 @@ CRUD + `cargarPartidaCompleta(int tiendaId)` — punto de entrada del juego.
 
 ---
 
-## 13. Criterios de Aceptación — Sprint 2
+## 17. Flujo General de la Aplicación
 
-| CA | Descripción | Estado |
-|---|---|---|
-| CA-01 | `mvn clean compile` → BUILD SUCCESS | ✅ |
-| CA-02 | Ventana con layout BorderPane (center + right) | ✅ |
-| CA-03 | 5 slots de estantería con ProgressBar + Label | ✅ |
-| CA-04 | 3 slots de cajero con ProgressBar de atención | ✅ |
-| CA-05 | 4 slots de compradores (opacos, sin lógica) | ✅ |
-| CA-06 | Panel derecho con 3 tarjetas de upgrade | ✅ |
-| CA-07 | Sección de estadísticas (dinero, reputación, día) | ✅ |
-| CA-08 | Botón "Avanzar Día" | ✅ |
-| CA-09 | `module-info.java` exporta controller y view | ✅ |
-| CA-10 | Bloque temporal de verificación eliminado de App.java | ✅ |
-| CA-11 | CSS con estilos para todos los componentes | ✅ |
-| CA-12 | Controller con inyección FXML de todos los elementos | ✅ |
+```
+App.init() → BD.initDB() (crea tablas si no existen)
+App.start() → login.fxml + música de fondo
+  │
+  ├─ [Ingresar] → valida usuario+contraseña → sesión
+  │     ├─ admin → AdminPanel.fxml (modal)
+  │     └─ otro  → verificarPartidaExistente() → continuar/nueva → MainWindow.fxml
+  │
+  ├─ [Invitado] → crea usuario "guest" → MainWindow.fxml (sin persistencia entre sesiones)
+  │
+  └─ [Crear cuenta] → Registro.fxml → login.fxml
+       │
+       MainWindow.fxml → GameLoopService (1s ticks)
+         ├─ Spawn clientes (80%) → decrementa stock
+         ├─ Despacho cajeros → +dinero → animación
+         ├─ Reputación: -0.5/estantería vacía por tick
+         ├─ Comprar/Reabastecer/Mejorar → $150/$50/$200
+         ├─ Avanzar día → guardar → resumen → siguiente día
+         └─ Game Over (dinero < 0 o reputación ≤ 0) → nueva partida
 
----
-
-## 14. Criterios de Aceptación — Sprint 3
-
-| CA | Descripción | Estado |
-|---|---|---|
-| CA-01 | `mvn clean compile` → BUILD SUCCESS | ✅ |
-| CA-02 | Ventana carga con datos reales desde BD (labelTipo1 muestra "Snacks") | ✅ |
-| CA-03 | Output en consola: "Partida cargada y bindings establecidos." sin errores | ✅ |
-| CA-04 | Bindings reactivos: `labelDinero` ↔ `dineroActualProperty()` | ✅ |
-| CA-05 | `labelTipo1` muestra `"Snacks"` desde la BD | ✅ |
-| CA-06 | `stockBar1-5` bindeados via `progressProperty().bind()` (sin setProgress directo) | ✅ |
-| CA-07 | `labelDinero` y `labelDia` bindeados sin `setText()` directo | ✅ |
-| CA-08 | Manejo de error de BD con `Alert(ERROR)` si falla `cargarPartidaCompleta()` | ✅ |
-| CA-09 | `getTiendaActual()` expone el estado del modelo para Sprint 4+ | ✅ |
-| CA-10 | Solo `MainController.java` modificado (sin cambios en FXML, CSS ni DAOs) | ✅ |
+App.stop() → auto-save partida en curso
+```
 
 ---
 
-## 15. Criterios de Aceptación — Sprint 4
+## 18. Criterios de Aceptación — Sprint 2-5 (completados)
 
-| CA | Descripción | Estado |
-|---|---|---|
-| CA-01 | `mvn clean compile` → BUILD SUCCESS | ✅ |
-| CA-02 | Game loop arranca sin errores en consola ("Game loop iniciado — ticks cada 1s.") | ✅ |
-| CA-03 | Spawn de clientes visible: `atenderBar1` se mueve (cuenta regresiva 5s) | ✅ |
-| CA-04 | Stock decrementa al spawnear (stockBar1 se acorta al llegar clientes) | ✅ |
-| CA-05 | Dinero aumenta al despachar (labelDinero se actualiza por binding reactivo) | ✅ |
-| CA-06 | `actualizarVistas()` público implementado en MainController | ✅ |
-| CA-07 | `GameLoopService.java` creado en `com.minimart.controller` | ✅ |
-| CA-08 | `GameLoopService` tiene métodos `iniciar()`, `pausar()`, `reanudar()` | ✅ |
-| CA-09 | Timeline usa `Duration.seconds(1)` y `cycleCount = INDEFINITE` | ✅ |
-| CA-10 | Solo `GameLoopService.java` (nuevo) y `MainController.java` (modificado) | ✅ |
-
----
-
-## 16. Arquitectura del Game Loop (Sprint 4)
-
-### `GameLoopService.java`
-
-| Componente | Descripción |
+| Sprint | Estado |
 |---|---|
-| `iniciar()` | Crea Timeline con KeyFrame `Duration.seconds(1)` y `cycleCount=INDEFINITE`, llama `play()` |
-| `pausar()` | Pausa el Timeline sin reiniciarlo |
-| `reanudar()` | Reanuda el Timeline desde donde se pausó |
-| `tick()` | Orchestrador: `spawnCliente()` → `procesarDespacho()` → `controller.actualizarVistas()` |
-| `spawnCliente()` | 30% probabilidad, filtra estanterías con stock, elige al azar, decrementa stock, asigna a cajero |
-| `asignarCliente()` | Busca cajero activo con menor cola (`Collections.min`), agrega cliente, resetea cuenta regresiva |
-| `procesarDespacho()` | Decrementa `segundosRestantes`, al llegar a 0 suma dinero y pasa al siguiente cliente |
-
-### Flujo por tick (cada 1s)
-
-```
-1. ¿Llega cliente? → 30% sí: elige producto, crea Cliente, resta stock, asigna al cajero menos ocupado
-2. Cada cajero activo con cola: decrementa segundosRestantes
-3. ¿segundosRestantes <= 0? → cobra cliente, lo saca de cola, inicia siguiente si hay
-4. actualizarVistas(): refresca atenderBar1..3 con progreso
-```
+| Sprint 2 — Layout + UI | ✅ |
+| Sprint 3 — Carga desde BD + Bindings | ✅ |
+| Sprint 4 — Game Loop (spawn + despacho) | ✅ |
+| Sprint 5 — CRUD desde botones de upgrade | ✅ |
 
 ---
 
-## 17. Criterios de Aceptación — Sprint 5
+## 19. Criterios de Aceptación — Sprint 6 (Persistencia)
 
 | CA | Descripción | Estado |
 |---|---|---|
 | CA-01 | `mvn clean compile` → BUILD SUCCESS | ✅ |
-| CA-02 | Consola muestra handlers configurados sin errores | ✅ |
-| CA-03 | Comprar Estantería ($150): slot se activa, dinero descuenta, persiste al reiniciar | ✅ |
-| CA-04 | Reabastecer ($50): ChoiceDialog con estanterías con stock bajo, stock vuelve al máximo | ✅ |
-| CA-05 | Contratar Cajero Inactivo ($200): slot se activa (opacity 1.0), dinero descuenta | ✅ |
-| CA-06 | Mejorar Cajero Activo ($200): nivel+1, tiempo-2 (mín. 1s), dinero descuenta | ✅ |
-| CA-07 | Validación de fondos: Alert WARNING si dinero insuficiente, operación no ejecutada | ✅ |
-| CA-08 | Límite de 5 estanterías: btnUpgrade1 se deshabilita al alcanzarlo | ✅ |
-| CA-09 | Persistencia verificada: al cerrar y reabrir, compras y mejoras sobreviven | ✅ |
-| CA-10 | Solo `MainController.java` modificado (sin cambios en FXML, CSS, DAOs, modelos) | ✅ |
+| CA-02 | Avanzar día guarda estado completo (JuegoDAO.transaccional) | ✅ |
+| CA-03 | Resetear partida crea semilla limpia (3 cajeros, 1 estantería) | ✅ |
+| CA-04 | Cerrar y reabrir app conserva día, dinero, stock, mejoras | ✅ |
+| CA-05 | Auto-save en `App.stop()` | ✅ |
+| CA-06 | `PreciosConfig` define precios por tipo de producto | ✅ |
+| CA-07 | `TiendaDAO.cargarPartidaPorUsuario()` crea partida si no existe | ✅ |
 
 ---
 
-## 18. Handlers de Upgrade — Arquitectura (Sprint 5)
+## 20. Criterios de Aceptación — Sprint 7 (Animaciones + Game Over)
 
-### Catálogo de productos
-
-| Índice | Tipo | Adquisición |
+| CA | Descripción | Estado |
 |---|---|---|
-| 0 | Snacks | Semilla (Sprint 0) |
-| 1 | Bebidas | 1ª compra |
-| 2 | Lácteos | 2ª compra |
-| 3 | Dulces | 3ª compra |
-| 4 | Conservas | 4ª compra |
-
-### Resumen de operaciones
-
-| Botón | Operación | Costo | DAO | Límite |
-|---|---|---|---|---|
-| `btnUpgrade1` | Comprar Estantería | $150 | `EstanteriaDAO.save()` | 5 estanterías |
-| `btnUpgrade2` | Reabastecer stock | $50 | `EstanteriaDAO.update()` | — |
-| `btnUpgrade3` | Contratar / Mejorar Cajero | $200 | `CajeroDAO.update()` | 3 cajeros activos |
-
-### Flujo de validación unificado
-
-```
-presionar botón → verificar límite (si aplica) → tieneFondos()?
-  ├─ No → Alert WARNING "Fondos insuficientes" → fin
-  └─ Sí → ejecutar operación en BD → mutar modelo en memoria
-         → descontarDinero() → actualizar UI → actualizarEstadoBotones()
-```
+| CA-01 | `mvn clean compile` → BUILD SUCCESS | ✅ |
+| CA-02 | Animación de ganancia (FadeTransition verde) en label de dinero | ✅ |
+| CA-03 | Game Over al dinero < 0 o reputación ≤ 0 | ✅ |
+| CA-04 | Pantalla de Game Over muestra días sobrevividos y dinero máximo | ✅ |
+| CA-05 | Resumen de día muestra ventas, ganancia y dinero total | ✅ |
+| CA-06 | Restricción: invitados no pueden avanzar día | ✅ |
+| CA-07 | Música de fondo con `javafx.media` | ✅ |
+| CA-08 | 22 GIFs de sprites para estanterías, cajeros, clientes y mostrador | ✅ |
+| CA-09 | Animación visual de clientes caminando y llegando al counter | ✅ |
 
 ---
 
-## 19. Preparación para Sprint 6
+## 21. Criterios de Aceptación — Sprint 8 (Multi-tenant + Login + Admin)
 
-### Lo que Sprint 6 podrá hacer
-
-- Presionar `btnAvanzarDia`: pausar game loop, persistir estado completo con `JuegoDAO.guardarEstadoCompleto()`, incrementar día, mostrar resumen de jornada
-- Usar `GameLoopService.pausar()` y `GameLoopService.reanudar()` (disponibles desde Sprint 4)
-- Modificar `App.java` para detectar partida existente y ofrecer "Nueva Partida / Continuar"
-
-### Lo que NO incluye Sprint 5
-
-| Funcionalidad | Sprint |
-|---|---|
-| Guardado masivo al avanzar día (JuegoDAO, transacciones) | Sprint 6 |
-| Pantalla de resumen de jornada | Sprint 6 |
-| Diálogo de nueva partida / continuar al iniciar | Sprint 6 |
-| Animación de dinero, stock crítico, reputación, Game Over | Sprint 7 |
+| CA | Descripción | Estado |
+|---|---|---|
+| CA-01 | `mvn clean compile` → BUILD SUCCESS | ✅ |
+| CA-02 | Login con usuario+contraseña valida contra BD | ✅ |
+| CA-03 | Botón "Invitado" crea usuario guest y carga juego | ✅ |
+| CA-04 | Registro con ComboBox de roles (admin, estándar, invitado) | ✅ |
+| CA-05 | Rol `admin` abre panel de administración | ✅ |
+| CA-06 | Panel admin muestra tabla con todas las partidas (usuarios + tiendas) | ✅ |
+| CA-07 | Admin puede reiniciar partida (transaccional) | ✅ |
+| CA-08 | Admin puede eliminar partida (transaccional) | ✅ |
+| CA-09 | Cada usuario tiene su propia tienda (`tienda.usuario_id` FK) | ✅ |
+| CA-10 | `TiendaDAO.crearPartidaInicial()` crea semilla por usuario | ✅ |
+| CA-11 | `module-info.java` exporta/opens `com.minimart.admin` | ✅ |
+| CA-12 | `App.stop()` auto-saves la partida activa | ✅ |
+| CA-13 | `ConexionBD` crea tabla `usuarios` y migración `usuario_id` en `tienda` | ✅ |
 
 ---
 
-## 20. Resumen de Archivos (15 archivos .java + 2 recursos)
+## 22. Arquitectura Multi-tenant
 
 ```
-src/main/java/com/minimart/
-├── App.java                   45 líneas  — Punto de entrada (FXMLLoader)
-├── module-info.java           16 líneas  — Declaración de módulo JPMS
-├── controller/
-│   ├── MainController.java   340 líneas  — Controlador principal (inyección FXML + bindings + game loop + handlers upgrade)
-│   └── GameLoopService.java  145 líneas  — Game loop con Timeline de 1s (spawn, despacho, UI)
-├── model/
-│   ├── Tienda.java            49 líneas  — Estado global de partida (3 Properties)
-│   ├── Estanteria.java        46 líneas  — Estantería con stock (1 Property)
-│   ├── Cajero.java            42 líneas  — Cajero con cola en memoria
-│   └── Cliente.java           28 líneas  — Cliente de sesión (no persistente)
-├── dao/
-│   ├── ConexionBD.java       136 líneas  — Singleton BD + initDB + esquema
-│   ├── DAO.java                9 líneas  — Interfaz genérica CRUD
-│   ├── TiendaDAO.java          96 líneas — CRUD + cargarPartidaCompleta()
-│   ├── EstanteriaDAO.java     107 líneas — CRUD + findByTiendaId() + updateStock()
-│   └── CajeroDAO.java         106 líneas — CRUD + findByTiendaId() + activar() + mejorar()
-└── view/
-    ├── PanelesView.java         5 líneas  — Clase utilitaria
-    └── package-info.java        5 líneas  — Javadoc del paquete
-
-src/main/resources/com/minimart/
-├── MainWindow.fxml           220 líneas  — Layout BorderPane principal
-└── styles.css                164 líneas  — Hoja de estilos completa
+usuarios (1) ────→ tienda (1) ────→ estanterias (N)
+                      │
+                      └────────────→ cajeros (N)
 ```
 
-**Total:** ~954 líneas de código Java + 384 líneas de recursos.
+- Cada usuario tiene 0 o 1 tienda (creada en login si no existe)
+- Admin ve todas las partidas en una tabla
+- Guest comparte un usuario único en la BD
+- El FK `tienda.usuario_id` usa `ON DELETE SET NULL` (si se borra el usuario, la tienda queda huérfana)

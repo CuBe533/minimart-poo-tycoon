@@ -1,9 +1,11 @@
 package com.minimart;
 
 import com.minimart.admin.AdminController;
+import com.minimart.controller.Sesion;
 import com.minimart.dao.ConexionBD;
 import com.minimart.dao.JuegoDAO;
 import com.minimart.dao.TiendaDAO;
+import com.minimart.model.Cajero;
 import com.minimart.model.Tienda;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -21,6 +23,7 @@ import java.util.Optional;
 
 public class App extends Application {
     private MediaPlayer  mediaPlayer;
+    private static Tienda tiendaEnJuego;
 
     @Override
     public void init() throws Exception {
@@ -51,44 +54,62 @@ public class App extends Application {
 
     @Override
     public void stop() throws Exception {
+        guardarPartidaEnCurso();
         detenerMusicaFondo();
         ConexionBD.getInstance().cerrar();
+    }
+
+    public static void setTiendaEnJuego(Tienda tienda) {
+        tiendaEnJuego = tienda;
+    }
+
+    private static void guardarPartidaEnCurso() {
+        if (tiendaEnJuego != null) {
+            try {
+                new JuegoDAO().guardarEstadoCompleto(tiendaEnJuego);
+                System.out.println("[App] Partida auto-guardada al cerrar.");
+            } catch (Exception e) {
+                System.err.println("[App] Error auto-guardando: " + e.getMessage());
+            }
+        }
     }
 
     public static void verificarPartidaExistente() {
         try {
             TiendaDAO dao = new TiendaDAO();
-            Tienda tienda = dao.cargarPartidaCompleta(1);
+            int usuarioId = Sesion.getUsuarioId();
+
+            Tienda tienda = dao.cargarPartidaPorUsuario(usuarioId);
 
             boolean hayProgreso = tienda.getDiaActual() > 1
                     || tienda.getDineroActual() != 500.0
                     || !tienda.getEstanterias().isEmpty()
                     || tienda.getCajeros().stream().anyMatch(c -> c.isActivo() && c.getNivelMejora() > 1)
-                    || tienda.getCajeros().stream().filter(c -> c.isActivo()).count() > 1;
+                    || tienda.getCajeros().stream().filter(Cajero::isActivo).count() > 1;
 
             if (hayProgreso) {
                 Alert alerta = new Alert(
                         Alert.AlertType.CONFIRMATION,
-                        "Tienes una partida guardada en el DÍA " + tienda.getDiaActual() +
+                        "Tienes una partida guardada en el DIA " + tienda.getDiaActual() +
                                 " con $" + String.format("%.2f", tienda.getDineroActual()) + ".\n\n" +
-                                "¿Deseas continuar esa partida o comenzar una nueva?",
+                                "Deseas continuar esa partida o comenzar una nueva?",
                         ButtonType.YES, ButtonType.NO
                 );
                 alerta.setTitle("MiniMart POO Tycoon");
-                alerta.setHeaderText("Partida encontrada — DÍA " + tienda.getDiaActual());
+                alerta.setHeaderText("Partida encontrada — DIA " + tienda.getDiaActual());
 
                 ((Button) alerta.getDialogPane().lookupButton(ButtonType.YES)).setText("Continuar");
                 ((Button) alerta.getDialogPane().lookupButton(ButtonType.NO)).setText("Nueva Partida");
 
                 Optional<ButtonType> resultado = alerta.showAndWait();
                 if (resultado.isPresent() && resultado.get() == ButtonType.NO) {
-                    new JuegoDAO().resetearPartida();
+                    new JuegoDAO().resetearPartida(tienda.getId());
                     System.out.println("[App] Nueva partida iniciada — datos reseteados.");
                 } else {
-                    System.out.println("[App] Continuando partida existente — DÍA " + tienda.getDiaActual());
+                    System.out.println("[App] Continuando partida existente — DIA " + tienda.getDiaActual());
                 }
             } else {
-                new JuegoDAO().resetearPartida();
+                new JuegoDAO().resetearPartida(tienda.getId());
                 System.out.println("[App] Sin progreso previo — se inicia estado limpio.");
             }
         } catch (RuntimeException ex) {

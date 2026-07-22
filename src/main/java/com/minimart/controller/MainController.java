@@ -214,7 +214,8 @@ public class MainController {
 
     private void cargarPartida(){
         TiendaDAO dao = new TiendaDAO();
-        tiendaActual = dao.cargarPartidaCompleta(1);
+        tiendaActual = dao.cargarPartidaPorUsuario(Sesion.getUsuarioId());
+        com.minimart.App.setTiendaEnJuego(tiendaActual);
 
         List<Cajero> cajerosOrdenados = tiendaActual.getCajeros().stream()
                 .sorted(Comparator.comparingInt(Cajero::getId))
@@ -323,7 +324,7 @@ public class MainController {
 
             gameOverController.setDatos(
                     diaActual, dineroMaximoAlcanzado,
-                    modal, stagePrincipal
+                    modal, stagePrincipal, tiendaActual.getId()
             );
 
             modal.show();
@@ -345,7 +346,7 @@ public class MainController {
         int nuevaPosicion = tiendaActual.getEstanterias().size() + 1;
         String tipo = TIPOS_PRODUCTO[tiendaActual.getEstanterias().size()];
 
-        Estanteria estanteria = new Estanteria(0, 1, tipo, 10, 10, nuevaPosicion);
+        Estanteria estanteria = new Estanteria(0, tiendaActual.getId(), tipo, 10, 10, nuevaPosicion);
 
         new EstanteriaDAO().save(estanteria);
         tiendaActual.getEstanterias().add(estanteria);

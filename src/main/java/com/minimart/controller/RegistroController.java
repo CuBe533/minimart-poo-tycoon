@@ -55,7 +55,12 @@ public class RegistroController {
             return;
         }
 
-        String rol = rolCombo.equals("administrador") ? "admin" : "invitado";
+        String rol;
+        switch (rolCombo) {
+            case "administrador" -> rol = "admin";
+            case "estandar"      -> rol = "estandar";
+            default              -> rol = "invitado";
+        }
         dao.registrar(usuario, pass1, rol);
         irALogin();
     }

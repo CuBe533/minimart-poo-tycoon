@@ -18,6 +18,7 @@ public class AdminController {
     @FXML private TableView<PartidaDTO> tablaPartidas;
 
     @FXML private TableColumn<PartidaDTO, Integer> colId;
+    @FXML private TableColumn<PartidaDTO, String>  colUsuario;
     @FXML private TableColumn<PartidaDTO, String>  colNombre;
     @FXML private TableColumn<PartidaDTO, Integer> colDia;
     @FXML private TableColumn<PartidaDTO, Double>  colDinero;
@@ -37,6 +38,7 @@ public class AdminController {
 
     private void configurarTabla() {
         colId.setCellValueFactory(new PropertyValueFactory<>("tiendaId"));
+        colUsuario.setCellValueFactory(new PropertyValueFactory<>("usuarioNombre"));
         colNombre.setCellValueFactory(new PropertyValueFactory<>("nombreTienda"));
         colDia.setCellValueFactory(new PropertyValueFactory<>("diaActual"));
         colDinero.setCellValueFactory(new PropertyValueFactory<>("dineroActual"));

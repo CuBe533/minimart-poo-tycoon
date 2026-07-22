@@ -7,7 +7,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -19,41 +18,49 @@ public class LoginController {
 
     @FXML private TextField     txtUsuario;
     @FXML private PasswordField txtPassword;
-    @FXML private ComboBox<String> comboRol;
     @FXML private Button        btnLogin;
+    @FXML private Button        btnGuest;
     @FXML private Button        btnRegistro;
     @FXML private Label         labelError;
 
     @FXML
     public void initialize() {
         btnLogin.setOnAction(e -> handleLogin());
+        btnGuest.setOnAction(e -> handleGuest());
         btnRegistro.setOnAction(e -> irARegistro());
     }
 
     private void handleLogin() {
-        String rolCombo = comboRol.getValue();
-
-        if (rolCombo != null) {
-            Sesion.setRol(rolCombo.equals("administrador") ? "admin" : "invitado");
-            irAlJuego();
-            return;
-        }
-
         String usuario = txtUsuario.getText();
         String password = txtPassword.getText();
 
         if (usuario.isBlank() || password.isBlank()) {
-            labelError.setText("Completa usuario y contraseña, o selecciona un rol.");
+            labelError.setText("Completa usuario y contrasena.");
             return;
         }
 
-        String rol = new UsuarioDAO().validarLogin(usuario, password);
+        String[] datos = new UsuarioDAO().validarLogin(usuario, password);
 
-        if (rol == null) {
-            labelError.setText("Usuario o contraseña incorrectos.");
+        if (datos == null) {
+            labelError.setText("Usuario o contrasena incorrectos.");
             return;
         }
-        Sesion.setRol(rol);
+        Sesion.setUsuarioId(Integer.parseInt(datos[0]));
+        Sesion.setRol(datos[1]);
+        Sesion.setNombreUsuario(usuario);
+        irAlJuego();
+    }
+
+    private void handleGuest() {
+        UsuarioDAO dao = new UsuarioDAO();
+        String nombreGuest = "guest";
+        if (!dao.existeUsuario(nombreGuest)) {
+            dao.registrar(nombreGuest, "none", "invitado");
+        }
+        String[] datos = dao.validarLogin(nombreGuest, "none");
+        Sesion.setUsuarioId(Integer.parseInt(datos[0]));
+        Sesion.setRol("invitado");
+        Sesion.setNombreUsuario(nombreGuest);
         irAlJuego();
     }
 

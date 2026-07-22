@@ -22,7 +22,7 @@ public class GameLoopService {
     private final AnimacionService animacionService = new AnimacionService();
     private       Timeline         timeline;
 
-    private static final double PROBABILIDAD_SPAWN = 0.50;
+    private static final double PROBABILIDAD_SPAWN = 0.80;
     private static final Random RNG = new Random();
 
     private int    ventasDelDia    = 0;

@@ -10,6 +10,7 @@ import java.util.List;
 public class Tienda {
 
     private int id;
+    private int usuarioId;
 
     private final SimpleStringProperty nombreTienda   = new SimpleStringProperty("");
     private final SimpleDoubleProperty  dineroActual  = new SimpleDoubleProperty(0.0);
@@ -20,8 +21,9 @@ public class Tienda {
 
     public Tienda() {}
 
-    public Tienda(int id, String nombreTienda, double dineroActual, int diaActual) {
+    public Tienda(int id, int usuarioId, String nombreTienda, double dineroActual, int diaActual) {
         this.id = id;
+        this.usuarioId = usuarioId;
         this.nombreTienda.set(nombreTienda);
         this.dineroActual.set(dineroActual);
         this.diaActual.set(diaActual);
@@ -29,6 +31,9 @@ public class Tienda {
 
     public int getId()          { return id; }
     public void setId(int id)   { this.id = id; }
+
+    public int  getUsuarioId()              { return usuarioId; }
+    public void setUsuarioId(int usuarioId) { this.usuarioId = usuarioId; }
 
     public String getNombreTienda()                        { return nombreTienda.get(); }
     public void   setNombreTienda(String nombre)           { this.nombreTienda.set(nombre); }

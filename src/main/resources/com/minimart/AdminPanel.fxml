@@ -29,7 +29,8 @@
             <TableView fx:id="tablaPartidas" styleClass="admin-table" VBox.vgrow="ALWAYS">
                 <columns>
                     <TableColumn fx:id="colId"          text="ID"         prefWidth="50"/>
-                    <TableColumn fx:id="colNombre"      text="Nombre"     prefWidth="180"/>
+                    <TableColumn fx:id="colUsuario"     text="Usuario"    prefWidth="120"/>
+                    <TableColumn fx:id="colNombre"      text="Nombre"     prefWidth="150"/>
                     <TableColumn fx:id="colDia"         text="Dia"        prefWidth="70"/>
                     <TableColumn fx:id="colDinero"      text="Dinero"     prefWidth="110"/>
                     <TableColumn fx:id="colEstanterias" text="Estanterias" prefWidth="100"/>
