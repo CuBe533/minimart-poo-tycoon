@@ -16,6 +16,6 @@ public final class PreciosConfig {
 
 
     public static double getPrecio(String tipoProducto) {
-        return PRECIOS.getOrDefault(tipoProducto, 2.0);
+        return PRECIOS.getOrDefault(tipoProducto, 2.0) * 1.5;
     }
 }

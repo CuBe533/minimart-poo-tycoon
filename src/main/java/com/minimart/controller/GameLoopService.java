@@ -27,6 +27,7 @@ public class GameLoopService {
 
     private int    ventasDelDia    = 0;
     private double dineroGanadoDia = 0.0;
+    private int    clientesSpawnedHoy = 0;
 
     private double reputacion = 100.0;
     private static final int UMBRAL_DESPACHO_RAPIDO = 3;
@@ -78,8 +79,21 @@ public class GameLoopService {
         }
     }
 
+    private int getLimiteClientes() {
+        return 10 + (tienda.getDiaActual() - 1) * 5;
+    }
+
     private void spawnCliente(){
+        if (clientesSpawnedHoy >= getLimiteClientes()) {
+            return;
+        }
+
         if (RNG.nextDouble() >= PROBABILIDAD_SPAWN){
+            return;
+        }
+
+        boolean hayCajeroActivo = tienda.getCajeros().stream().anyMatch(Cajero::isActivo);
+        if (!hayCajeroActivo) {
             return;
         }
 
@@ -97,6 +111,7 @@ public class GameLoopService {
         Cliente cliente = new Cliente(elegida.getTipoProducto(), precio);
 
         elegida.setStockActual(elegida.getStockActual() - 1);
+        clientesSpawnedHoy++;
         asignarCliente(cliente);
     }
 
@@ -184,6 +199,7 @@ public class GameLoopService {
     public void reiniciarContadoresDia() {
         ventasDelDia = 0;
         dineroGanadoDia = 0.0;
+        clientesSpawnedHoy = 0;
     }
 
     public void limpiarClienteEnCurso(){

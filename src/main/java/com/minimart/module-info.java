@@ -3,6 +3,7 @@ module com.minimart {
     requires javafx.fxml;
     requires java.sql;
     requires javafx.media;
+    requires jbcrypt;
 
     opens com.minimart to javafx.fxml;
 

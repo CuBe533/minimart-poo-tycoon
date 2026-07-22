@@ -22,6 +22,7 @@ import com.minimart.model.Estanteria;
 import com.minimart.model.Tienda;
 import javafx.util.Duration;
 import javafx.application.Platform;
+import javafx.beans.binding.DoubleBinding;
 
 import java.io.IOException;
 import java.util.*;
@@ -244,9 +245,17 @@ public class MainController {
             labelsTipo[idx].setText(e.getTipoProducto());
             imagenesEstanteria[idx].setImage(spritesProducto.get(e.getTipoProducto()));
 
-            barrasStock[idx].progressProperty().bind(
-                    e.stockActualProperty().divide(e.getStockMaximo())
-            );
+            DoubleBinding porcentaje = new DoubleBinding() {
+                {
+                    bind(e.stockActualProperty());
+                }
+                @Override
+                protected double computeValue() {
+                    int max = e.getStockMaximo();
+                    return max == 0 ? 0.0 : (double) e.getStockActual() / max;
+                }
+            };
+            barrasStock[idx].progressProperty().bind(porcentaje);
         }
 
         for (int i = 0; i < tiendaActual.getCajeros().size() && i < slotsCajero.length; i++){
@@ -336,8 +345,13 @@ public class MainController {
     }
 
     private void handleComprarEstanteria() {
-        if (tiendaActual.getEstanterias().size() >= 5) {
-            mostrarInfo("Límite alcanzado", "Ya tienes el máximo de 5 estanterías.");
+        int maxPermitidas = Math.min(tiendaActual.getDiaActual(), 5);
+        if (tiendaActual.getEstanterias().size() >= maxPermitidas) {
+            if (maxPermitidas >= 5) {
+                mostrarInfo("Límite alcanzado", "Ya tienes el máximo de 5 estanterías.");
+            } else {
+                mostrarInfo("Bloqueado", "Debes avanzar al día " + (maxPermitidas + 1) + " para desbloquear la siguiente estantería.");
+            }
             return;
         }
 
@@ -346,7 +360,7 @@ public class MainController {
         int nuevaPosicion = tiendaActual.getEstanterias().size() + 1;
         String tipo = TIPOS_PRODUCTO[tiendaActual.getEstanterias().size()];
 
-        Estanteria estanteria = new Estanteria(0, tiendaActual.getId(), tipo, 10, 10, nuevaPosicion);
+        Estanteria estanteria = new Estanteria(0, tiendaActual.getId(), tipo, 50, 50, nuevaPosicion);
 
         new EstanteriaDAO().save(estanteria);
         tiendaActual.getEstanterias().add(estanteria);
@@ -361,9 +375,17 @@ public class MainController {
         slots[idx].setOpacity(1.0);
         labels[idx].setText(tipo);
         imagenes[idx].setImage(spritesProducto.get(tipo));
-        barras[idx].progressProperty().bind(
-                estanteria.stockActualProperty().divide(estanteria.getStockMaximo())
-        );
+        DoubleBinding porcentaje = new DoubleBinding() {
+            {
+                bind(estanteria.stockActualProperty());
+            }
+            @Override
+            protected double computeValue() {
+                int max = estanteria.getStockMaximo();
+                return max == 0 ? 0.0 : (double) estanteria.getStockActual() / max;
+            }
+        };
+        barras[idx].progressProperty().bind(porcentaje);
 
         actualizarEstadoBotones();
         System.out.println("[MainController] Estantería comprada: " + estanteria);
@@ -554,7 +576,8 @@ public class MainController {
     }
 
     private void actualizarEstadoBotones() {
-        btnUpgrade1.setDisable(tiendaActual.getEstanterias().size() >= 5);
+        int maxPermitidas = Math.min(tiendaActual.getDiaActual(), 5);
+        btnUpgrade1.setDisable(tiendaActual.getEstanterias().size() >= maxPermitidas);
     }
 
     private boolean tieneFondos(double costo) {

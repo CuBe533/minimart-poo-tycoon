@@ -104,7 +104,7 @@ public class TiendaDAO implements DAO<Tienda> {
         }
 
         try (PreparedStatement ps = conexion.prepareStatement(
-                "INSERT INTO estanterias (tienda_id, tipo_producto, stock_actual, stock_maximo, posicion_visual) VALUES (?, 'Snacks', 10, 10, 1)")) {
+                "INSERT INTO estanterias (tienda_id, tipo_producto, stock_actual, stock_maximo, posicion_visual) VALUES (?, 'Snacks', 50, 50, 1)")) {
             ps.setInt(1, tienda.getId());
             ps.executeUpdate();
         } catch (SQLException e) {

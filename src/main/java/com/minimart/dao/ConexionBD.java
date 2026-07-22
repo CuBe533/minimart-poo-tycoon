@@ -85,8 +85,8 @@ public class ConexionBD {
                     id               INTEGER PRIMARY KEY AUTOINCREMENT,
                     tienda_id        INTEGER NOT NULL,
                     tipo_producto    TEXT    NOT NULL,
-                    stock_actual     INTEGER NOT NULL DEFAULT 10,
-                    stock_maximo     INTEGER NOT NULL DEFAULT 10,
+                    stock_actual     INTEGER NOT NULL DEFAULT 50,
+                    stock_maximo     INTEGER NOT NULL DEFAULT 50,
                     posicion_visual  INTEGER NOT NULL CHECK(posicion_visual BETWEEN 1 AND 5),
                     FOREIGN KEY (tienda_id) REFERENCES tienda(id) ON DELETE CASCADE,
                     UNIQUE(tienda_id, posicion_visual)

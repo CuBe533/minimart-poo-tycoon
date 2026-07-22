@@ -81,7 +81,7 @@ public class AdminDAO {
 
             try (PreparedStatement ps = conexion.prepareStatement(
                     "INSERT INTO estanterias (tienda_id, tipo_producto, stock_actual, stock_maximo, posicion_visual) " +
-                    "VALUES (?, 'Snacks', 10, 10, 1)")) {
+                    "VALUES (?, 'Snacks', 50, 50, 1)")) {
                 ps.setInt(1, tiendaId);
                 ps.executeUpdate();
             }
